@@ -800,7 +800,7 @@ function init(host) {
     try {
       const r = await ws({ type: "hmip_geraete/import_ha" });
       devices = await dbAll(); render(); $("dMenu").close();
-      toast(`Aus ${cfg.source}: ${r.added} neu, ${r.updated} aktualisiert` + (r.skipped ? `, ${r.skipped} ohne passende Seriennummer übersprungen` : ""));
+      toast(`Aus ${cfg.source}: ${r.added} neu, ${r.updated} aktualisiert`);
     } catch (e) { alert("Übernahme fehlgeschlagen: " + errText(e)); }
     $("mHa").disabled = false;
   };
