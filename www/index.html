@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0E324C">
+<title>HmIP Geräte</title>
+<style>
+html,body{margin:0;height:100%;background:#F3F2F7;font:16px/1.4 system-ui,sans-serif;color:#0E324C}
+#login{max-width:380px;margin:12vh auto;padding:24px;background:#fff;border-radius:20px;box-shadow:0 1px 6px rgba(14,50,76,.2)}
+#login h1{margin:0 0 6px;font-size:22px}#login p{margin:0 0 14px;color:#667180;font-size:14px}
+#login input{width:100%;box-sizing:border-box;padding:12px 14px;font:inherit;border:1px solid #E1E6EA;border-radius:14px;background:#F3F2F7;margin-bottom:12px}
+#login button{width:100%;padding:13px;font:inherit;font-weight:700;border:0;border-radius:14px;background:#0E324C;color:#fff;cursor:pointer}
+#err{color:#C62828;font-size:14px;min-height:20px;margin-top:8px}
+hmip-geraete-panel{display:block;height:100vh}
+</style>
+</head>
+<body>
+<div id="login" hidden>
+  <h1 id="lt">Anmelden</h1><p id="lp"></p>
+  <input id="pw" type="password" autocomplete="current-password" placeholder="Passwort">
+  <input id="pw2" type="password" autocomplete="new-password" placeholder="Passwort wiederholen" hidden>
+  <button id="go">Weiter</button><div id="err"></div>
+</div>
+<script type="module">
+import "./panel.js";
+const $ = (id) => document.getElementById(id);
+let token = ""; try { token = sessionStorage.getItem("hmipTok") || ""; } catch (e) { /* kein Speicher */ }
+async function call(method, url, body) {
+  const r = await fetch(url, { method, headers: { "Content-Type": "application/json", "X-Token": token }, body: body === undefined ? undefined : JSON.stringify(body) });
+  let j = {}; try { j = await r.json(); } catch (e) { /* leer */ }
+  if (!r.ok) { if (r.status === 401 && url !== "/api/login") { try { sessionStorage.removeItem("hmipTok"); } catch (e) {} if (token) { location.reload(); } } throw { code: j.code || r.status, message: j.message || ("Fehler " + r.status) }; }
+  return j;
+}
+/* Das Panel spricht dieselben Befehle wie in Home Assistant; hier werden sie auf die HTTP-API abgebildet. */
+const hass = { connection: { sendMessagePromise: async (m) => {
+  switch (m.type) {
+    case "hmip_geraete/list": return call("GET", "/api/list");
+    case "hmip_geraete/save": return call("POST", "/api/save", { device: m.device });
+    case "hmip_geraete/delete": return call("POST", "/api/delete", { device_id: m.device_id });
+    case "hmip_geraete/import_ha": return call("POST", "/api/import", {});
+  }
+  throw { code: "unknown_command", message: "Unbekannter Befehl" };
+} } };
+function showPanel() {
+  $("login").hidden = true;
+  const el = document.createElement("hmip-geraete-panel");
+  el.cfg = { source: "der HCU",
+    storageNote: "Die Daten liegen im Plugin-Ordner der HCU (/data) und bleiben bei Updates erhalten. Der Zugriff ist durch ein Passwort geschützt." };
+  document.body.appendChild(el); el.hass = hass;
+}
+async function main() {
+  if (token) { try { await call("GET", "/api/list"); return showPanel(); } catch (e) { token = ""; } }
+  const st = await call("GET", "/api/status"), setup = !st.passwordSet;
+  $("login").hidden = false;
+  $("lt").textContent = setup ? "Passwort festlegen" : "Anmelden";
+  $("lp").textContent = setup ? "Die Geräteschlüssel sind vertraulich. Lege ein Passwort (mindestens 8 Zeichen) für diese Seite fest." : "HmIP Geräteverwaltung";
+  $("pw2").hidden = !setup;
+  const go = async () => {
+    $("err").textContent = "";
+    try {
+      if (setup && $("pw").value !== $("pw2").value) throw { message: "Die Passwörter stimmen nicht überein" };
+      const r = await call("POST", setup ? "/api/setup" : "/api/login", { password: $("pw").value });
+      token = r.token; try { sessionStorage.setItem("hmipTok", token); } catch (e) { /* ok */ }
+      showPanel();
+    } catch (e) { $("err").textContent = e.message || "Fehler"; }
+  };
+  $("go").onclick = go; $("pw").onkeydown = $("pw2").onkeydown = (e) => { if (e.key === "Enter") go(); };
+}
+main().catch((e) => { document.body.textContent = "Fehler: " + (e.message || e); });
+</script>
+</body>
+</html>
