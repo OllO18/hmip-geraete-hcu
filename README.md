@@ -11,7 +11,7 @@ Plugin für die Homematic IP **Home Control Unit (HCU)** über die eQ-3 Connect 
 
 1. Entwicklermodus der HCU in HCUweb aktivieren (nötig für eigene Plugins).
 2. Paket `hmip-geraeteverwaltung-<version>.tar.gz` aus den GitHub Actions („Plugin bauen“ → Artefakt) bzw. aus den Releases herunterladen und in HCUweb unter **Plugins** hochladen.
-3. Im Browser `https://hcu1-XXXX.local:8443` öffnen (XXXX = letzte vier Stellen der SGTIN der HCU). Die Zertifikatswarnung einmal bestätigen.
+3. In HCUweb beim Plugin auf das Zahnrad tippen: Dort stehen Link und QR-Code zur Weboberfläche. Alternativ im Browser `https://hcu1-XXXX.local:8443` öffnen (XXXX = letzte vier Stellen der SGTIN der HCU). Die Zertifikatswarnung einmal bestätigen.
 4. Beim ersten Aufruf ein Passwort (mindestens 8 Zeichen) festlegen.
 
 ## Warum HTTPS mit eigenem Zertifikat?
