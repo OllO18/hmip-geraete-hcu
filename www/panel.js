@@ -147,14 +147,16 @@ function nestSticker(d, x, y, w) {
   return { h, svg: `<svg x="${x}" y="${y}" width="${w}" height="${h.toFixed(1)}" viewBox="0 0 500 ${p.h}">${p.inner}</svg>` };
 }
 const BOX = { x0: 63, dx: 366, y0: 188, dy: 321, w: 335, h: 291 };
-export function docPages(devices, when = "") {
+export function docPages(devices, when = "", note = "") {
+  const noteLines = wrap(note, 92, 2);
   const total = Math.max(1, Math.ceil(devices.length / 6)), pages = [];
   for (let p = 0; p < total; p++) {
     let s = `<rect width="${PW}" height="94" fill="#0C3358"/>
 <text x="60" y="55" font-size="21" font-weight="bold" fill="#fff">Übersicht der Homematic IP Komponenten</text>
 <text x="767" y="55" text-anchor="end" font-size="13" fill="#fff">${xml(when ? when + " · " : "")}Seite ${p + 1} von ${total}</text>
 <text x="63" y="131" font-size="17" fill="#484A4B">Notizen:</text>
-<line x1="140" y1="132" x2="764" y2="132" stroke="#555" stroke-width="1"/><line x1="140" y1="160" x2="764" y2="160" stroke="#555" stroke-width="1"/>`;
+<line x1="140" y1="132" x2="764" y2="132" stroke="#555" stroke-width="1"/><line x1="140" y1="160" x2="764" y2="160" stroke="#555" stroke-width="1"/>
+${noteLines.map((l, k) => `<text x="144" y="${127 + k * 28}" font-size="12.5" fill="#0E324C">${xml(l)}</text>`).join("")}`;
     for (let i = 0; i < 6; i++) {
       const d = devices[p * 6 + i], x = BOX.x0 + (i % 2) * BOX.dx, y = BOX.y0 + Math.floor(i / 2) * BOX.dy;
       s += `<rect x="${x}" y="${y}" width="${BOX.w}" height="${BOX.h}" rx="5" fill="none" stroke="#88898A" stroke-width="1.2"/>
@@ -279,6 +281,19 @@ input,select,textarea{font:inherit;color:var(--navy);width:100%;padding:12px 14p
 input:focus,select:focus,textarea:focus{outline:2px solid var(--cyan);outline-offset:0;background:#fff}
 .tools input,.tools select{background:#fff}
 .tools input{flex:2 1 160px}.tools select{flex:1 1 140px}
+.tools button{flex:1 1 120px;padding:10px 12px;font-size:14px}
+.tools button.on{background:var(--navy);color:#fff}
+#fInfo{font-size:13px;color:var(--mut);margin:-4px 2px 10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#fInfo button{padding:4px 10px;font-size:13px;border-radius:999px;background:#E9EDF1;color:var(--navy)}
+.row2{display:flex;gap:10px;position:sticky;bottom:0;background:#fff;padding:6px 0 4px}.row2>*{flex:1}
+.chks{display:flex;flex-direction:column;max-height:28vh;overflow:auto;border:1px solid var(--line);border-radius:14px;padding:4px 10px;background:var(--bg)}
+.chk{display:flex;align-items:center;gap:10px;padding:7px 2px;font-size:15px;cursor:pointer}
+.chk input{width:20px;height:20px;flex:none;accent-color:var(--cyan);margin:0;padding:0}
+.chk .n{margin-left:auto;color:var(--mut);font-size:13px}
+.cb{width:26px;height:26px;border-radius:8px;border:2px solid var(--cyan);flex:none;display:flex;align-items:center;justify-content:center;background:#fff}
+.cb svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;display:none}
+.item.sel .cb{background:var(--cyan)}.item.sel .cb svg{display:block}
+.item.sel{box-shadow:0 0 0 2px var(--cyan)}
 .item{background:#fff;border-radius:20px;padding:12px 14px;margin-bottom:10px;display:flex;gap:12px;align-items:center;box-shadow:0 1px 3px rgba(14,50,76,.12);cursor:pointer}
 .ico{width:46px;height:46px;border-radius:14px;flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:13px;line-height:1;font-weight:700}
 .ico svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
@@ -322,9 +337,10 @@ small{color:var(--mut)}
 <main>
   <div class="tools">
     <input id="q" type="search" placeholder="Suchen …">
-    <select id="fRoom"><option value="">Alle Räume</option></select>
-    <select id="fStatus"><option value="">Alle Geräte</option><option value="missing">QR-Code-Aufkleber fehlt</option><option value="done">QR-Code-Aufkleber erfasst</option></select>
+    <button type="button" class="ghost" id="bFilter">Filter</button>
+    <button type="button" class="ghost" id="bSelect">Auswählen</button>
   </div>
+  <div id="fInfo" hidden></div>
   <div id="list"></div>
 </main>
 
@@ -377,14 +393,22 @@ small{color:var(--mut)}
   <datalist id="rooms"></datalist><datalist id="types"></datalist>
 </form></dialog>
 
+<dialog id="dFilter"><div class="dlg">
+  <h2>Filter</h2>
+  <label>Räume</label><div class="chks" id="fRooms"></div>
+  <label>Gerätetypen</label><div class="chks" id="fTypes"></div>
+  <label>QR-Code-Aufkleber</label>
+  <select id="fStatus"><option value="">Alle Geräte</option><option value="missing">QR-Code-Aufkleber fehlt</option><option value="done">QR-Code-Aufkleber erfasst</option></select>
+  <div class="row2"><button type="button" class="ghost" id="fReset">Zurücksetzen</button><button type="button" class="pri" id="fDone">Fertig</button></div>
+</div></dialog>
 <dialog id="dMenu"><div class="dlg">
   <h2>Übernahme, Aufkleber, Export</h2>
   <button class="pri" id="mHa">Geräte aus {{SRC}} übernehmen</button>
   <small>Liest alle eQ-3-Geräte mit Seriennummer aus {{SRC}} (Name, Typ, Raum, Firmware). Vorhandene Einträge und deine Eingaben bleiben erhalten.</small>
-  <button class="pri" id="mDoc">Dokumentationsbogen als PDF (aktuelle Auswahl)</button>
+  <button class="pri" id="mDoc">Dokumentationsbogen als PDF (Filter bzw. Auswahl)</button>
   <small>Nachbau des Homematic-IP-Vordrucks mit Gerätename, Raum und QR-Code-Aufkleber, 6 Geräte je A4-Seite. Auf dem Smartphone teilen oder speichern, dann drucken.</small>
   <button class="ghost" id="mDocPrint">Dokumentationsbogen drucken (PC)</button>
-  <button class="ghost" id="mSheet">Nur QR-Code-Aufkleber als PDF</button>
+  <button class="ghost" id="mSheet">Nur QR-Code-Aufkleber als PDF (Filter bzw. Auswahl)</button>
   <button class="ghost" id="mCsv">CSV für Excel exportieren</button>
   <small>Die CSV enthält keine Geräteschlüssel.</small>
   <button class="ghost" id="mJson">Backup (JSON, enthält die Geräteschlüssel)</button>
@@ -532,32 +556,69 @@ function init(host) {
   }
 
   /* ---------- UI ---------- */
+  /* Filter: mehrere Räume und Gerätetypen, Status, Suche. Handauswahl hat für die Bögen Vorrang. */
+  const fRooms = new Set(), fTypes = new Set(), picked = new Set();
+  let selMode = false;
+  const NOROOM = "\u0000ohne";
+  const roomOf = (d) => d.room || NOROOM;
   function refreshLists() {
     const rooms = [...new Set(devices.map((d) => d.room).filter(Boolean))].sort((a, b) => a.localeCompare(b, "de"));
     const types = [...new Set(devices.map((d) => d.type).filter(Boolean))].sort();
     $("rooms").innerHTML = rooms.map((r) => `<option value="${esc(r)}">`).join("");
     $("types").innerHTML = types.map((r) => `<option value="${esc(r)}">`).join("");
-    const sel = $("fRoom"), v = sel.value;
-    sel.innerHTML = '<option value="">Alle Räume</option>' + rooms.map((r) => `<option>${esc(r)}</option>`).join("");
-    sel.value = rooms.includes(v) ? v : "";
+    for (const r of [...fRooms]) if (r !== NOROOM && !rooms.includes(r)) fRooms.delete(r);
+    for (const t of [...fTypes]) if (!types.includes(t)) fTypes.delete(t);
+    for (const id of [...picked]) if (!devices.some((d) => d.id === id)) picked.delete(id);
   }
-
+  function fillFilterDialog() {
+    const cnt = (f) => devices.filter(f).length;
+    const rooms = [...new Set(devices.map((d) => d.room).filter(Boolean))].sort((a, b) => a.localeCompare(b, "de"));
+    if (devices.some((d) => !d.room)) rooms.push(NOROOM);
+    const types = [...new Set(devices.map((d) => d.type).filter(Boolean))].sort();
+    const box = (set, v, label, n) => `<label class="chk"><input type="checkbox" data-v="${esc(v)}"${set.has(v) ? " checked" : ""}>${esc(label)}<span class="n">${n}</span></label>`;
+    $("fRooms").innerHTML = rooms.map((r) => box(fRooms, r, r === NOROOM ? "(ohne Raum)" : r, cnt((d) => roomOf(d) === r))).join("") || "<small>Keine Räume</small>";
+    $("fTypes").innerHTML = types.map((t) => box(fTypes, t, t, cnt((d) => d.type === t))).join("") || "<small>Keine Typen</small>";
+  }
   function filtered() {
-    const q = $("q").value.trim().toLowerCase(), fr = $("fRoom").value, fs = $("fStatus").value;
-    return devices.filter((d) => (!fr || d.room === fr) && (!fs || (fs === "done") === hasCode(d)) && (!q ||
-      [d.name, d.type, d.room, d.loc, d.sgtin, d.note].join(" ").toLowerCase().includes(q)))
-      .sort((a, b) => (a.room || "~").localeCompare(b.room || "~", "de") || (a.name || "").localeCompare(b.name || "", "de"));
+    const q = $("q").value.trim().toLowerCase(), fs = $("fStatus").value;
+    return devices.filter((d) => (!fRooms.size || fRooms.has(roomOf(d))) && (!fTypes.size || fTypes.has(d.type)) &&
+      (!fs || (fs === "done") === hasCode(d)) && (!q || [d.name, d.type, d.room, d.loc, d.sgtin, d.note].join(" ").toLowerCase().includes(q)))
+      .sort(byRoom);
+  }
+  const byRoom = (a, b) => (!a.room - !b.room) || (a.room || "").localeCompare(b.room || "", "de") || (a.name || "").localeCompare(b.name || "", "de");
+  /* Beschreibung der aktiven Filter (Liste und Notizzeile des Bogens) */
+  function filterText() {
+    const p = [], q = $("q").value.trim(), fs = $("fStatus").value;
+    if (fRooms.size) p.push((fRooms.size > 1 ? "Räume: " : "Raum: ") + [...fRooms].map((r) => (r === NOROOM ? "ohne Raum" : r)).sort((a, b) => a.localeCompare(b, "de")).join(", "));
+    if (fTypes.size) p.push((fTypes.size > 1 ? "Typen: " : "Typ: ") + [...fTypes].sort().join(", "));
+    if (fs) p.push(fs === "done" ? "QR-Code-Aufkleber erfasst" : "QR-Code-Aufkleber fehlt");
+    if (q) p.push(`Suche „${q}“`);
+    return p.join(" · ");
+  }
+  /* Geräte für die Bögen: Handauswahl, sonst die gefilterte Liste */
+  function sheetSet() {
+    if (picked.size) { const l = devices.filter((d) => picked.has(d.id)).sort(byRoom); return { list: l, note: `Handauswahl: ${l.length} ${l.length === 1 ? "Gerät" : "Geräte"}` }; }
+    const l = filtered(), f = filterText();
+    return { list: l, note: f ? `Filter: ${f} (${l.length} ${l.length === 1 ? "Gerät" : "Geräte"})` : `Alle Geräte (${l.length})` };
   }
 
   function render() {
     refreshLists();
-    const list = filtered();
+    const list = filtered(), ft = filterText();
+    $("bFilter").textContent = fRooms.size + fTypes.size + ($("fStatus").value ? 1 : 0) ? `Filter (${fRooms.size + fTypes.size + ($("fStatus").value ? 1 : 0)})` : "Filter";
+    $("bFilter").classList.toggle("on", !!(fRooms.size || fTypes.size || $("fStatus").value));
+    $("bSelect").textContent = selMode ? "Auswahl fertig" : "Auswählen"; $("bSelect").classList.toggle("on", selMode);
+    let info = "";
+    if (ft) info += `<span>${esc(ft)} – ${list.length} von ${devices.length}</span><button type="button" data-a="clearF">Filter löschen</button>`;
+    if (selMode || picked.size) info += `<span><b>${picked.size} ausgewählt</b>${picked.size ? " – Bögen enthalten nur diese Geräte" : ""}</span>` +
+      (selMode ? `<button type="button" data-a="all">Alle angezeigten</button>` : "") + (picked.size ? `<button type="button" data-a="none">Auswahl aufheben</button>` : "");
+    $("fInfo").innerHTML = info; $("fInfo").hidden = !info;
     $("count").textContent = `${devices.length} Geräte · QR-Code-Aufkleber ${devices.filter(hasCode).length}/${devices.length}`;
     $("list").innerHTML = list.length ? list.map((d) => {
       const ok = hasCode(d);
       return `
-      <div class="item" data-id="${esc(d.id)}">
-        <div class="ico ${ok ? "ok" : "miss"}">QR${ok ? '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>' : ""}</div>
+      <div class="item${picked.has(d.id) ? " sel" : ""}" data-id="${esc(d.id)}">
+        ${selMode ? '<div class="cb"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>' : ""}<div class="ico ${ok ? "ok" : "miss"}">QR${ok ? '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>' : ""}</div>
         <div class="main">
           <div class="t">${esc(d.name || d.type || "(ohne Name)")}</div>
           <div class="s">${esc(d.type)}${d.type && d.sgtin ? " · " : ""}${d.sgtin ? "SGTIN …" + esc(last4(d.sgtin)) : ""}${d.fw ? " · FW " + esc(d.fw) : ""}</div>
@@ -640,9 +701,23 @@ function init(host) {
   };
   $("list").addEventListener("click", (e) => {
     const it = e.target.closest(".item"); if (!it) return;
+    if (selMode) { const id = it.dataset.id; picked.has(id) ? picked.delete(id) : picked.add(id); render(); return; }
     const d = devices.find((x) => x.id === it.dataset.id); if (d) openEdit({ ...d });
   });
-  $("q").addEventListener("input", render); $("fRoom").addEventListener("change", render); $("fStatus").addEventListener("change", render);
+  $("q").addEventListener("input", render); $("fStatus").addEventListener("change", render);
+  $("bFilter").onclick = () => { fillFilterDialog(); $("dFilter").showModal(); };
+  const chkHandler = (set) => (e) => { const c = e.target.closest("input[data-v]"); if (!c) return; c.checked ? set.add(c.dataset.v) : set.delete(c.dataset.v); render(); };
+  $("fRooms").addEventListener("change", chkHandler(fRooms)); $("fTypes").addEventListener("change", chkHandler(fTypes));
+  $("fReset").onclick = () => { fRooms.clear(); fTypes.clear(); $("fStatus").value = ""; fillFilterDialog(); render(); };
+  $("fDone").onclick = () => $("dFilter").close();
+  $("bSelect").onclick = () => { selMode = !selMode; render(); };
+  $("fInfo").addEventListener("click", (e) => {
+    const a = e.target.closest("button[data-a]"); if (!a) return;
+    if (a.dataset.a === "clearF") { fRooms.clear(); fTypes.clear(); $("fStatus").value = ""; $("q").value = ""; }
+    if (a.dataset.a === "all") filtered().forEach((d) => picked.add(d.id));
+    if (a.dataset.a === "none") picked.clear();
+    render();
+  });
 
   $("bBurger").onclick = () => host.dispatchEvent(new Event("hass-toggle-menu", { bubbles: true, composed: true }));
   $("bScan").onclick = startScan;
@@ -681,7 +756,7 @@ function init(host) {
   const csvCell = (v) => { v = String(v ?? ""); return /[;"\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
   function exportCsv() {
     const head = ["Raum", "Einbauort", "Name", "Typ", "Firmware", "SGTIN", "Letzte 4", "QR-Code-Aufkleber", "Notiz", "Erfasst am"];
-    const rows = [...devices].sort((a, b) => (a.room || "~").localeCompare(b.room || "~", "de") || (a.name || "").localeCompare(b.name || "", "de"))
+    const rows = [...devices].sort(byRoom)
       .map((d) => [d.room, d.loc, d.name, d.type, d.fw, d.sgtin, last4(d.sgtin), hasCode(d) ? "ja" : "nein", d.note, (d.created || "").slice(0, 10)].map(csvCell).join(";"));
     downloadBlob(`hmip-geraete-${stamp()}.csv`, new Blob(["﻿" + head.join(";") + "\r\n" + rows.join("\r\n")], { type: "text/csv;charset=utf-8" }));
   }
@@ -715,9 +790,9 @@ function init(host) {
     } catch (e) { alert("Übernahme fehlgeschlagen: " + errText(e)); }
     $("mHa").disabled = false;
   };
-  $("mDoc").onclick = () => { $("dMenu").close(); outputPdf(docPages(filtered(), today()), "dokumentationsbogen.pdf"); };
-  $("mDocPrint").onclick = () => { $("dMenu").close(); printPages(docPages(filtered(), today())); };
-  $("mSheet").onclick = () => { $("dMenu").close(); outputPdf(stickerPages(filtered().filter((d) => codeContent(d))), "qr-code-aufkleber.pdf"); };
+  $("mDoc").onclick = () => { $("dMenu").close(); const s = sheetSet(); outputPdf(docPages(s.list, today(), s.note), "dokumentationsbogen.pdf"); };
+  $("mDocPrint").onclick = () => { $("dMenu").close(); const s = sheetSet(); printPages(docPages(s.list, today(), s.note)); };
+  $("mSheet").onclick = () => { $("dMenu").close(); outputPdf(stickerPages(sheetSet().list.filter((d) => codeContent(d))), "qr-code-aufkleber.pdf"); };
   $("mCsv").onclick = () => { exportCsv(); $("dMenu").close(); };
   $("mJson").onclick = () => { exportJson(); $("dMenu").close(); };
   $("mImport").onclick = () => $("fileImport").click();

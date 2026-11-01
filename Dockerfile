@@ -17,7 +17,7 @@ LABEL de.eq3.hmip.plugin.metadata=\
 '{\
 	"pluginId": "de.ollo18.hmip.geraeteverwaltung",\
 	"issuer": "OllO18",\
-	"version": "0.1.0",\
+	"version": "0.2.0",\
 	"hcuMinVersion": "1.4.7",\
 	"scope": "LOCAL",\
 	"friendlyName": {\
@@ -28,6 +28,6 @@ LABEL de.eq3.hmip.plugin.metadata=\
 		"de": "QR-Code-Aufkleber der Geräte scannen und verwalten, Aufkleber und Dokumentationsbogen drucken. Weboberfläche: https://hcu1-XXXX.local:8443",\
 		"en": "Scan and manage the devices QR code stickers, print stickers and documentation sheets. Web UI: https://hcu1-XXXX.local:8443"\
 	},\
-	"changelog": "0.1.0: Erste Version",\
+	"changelog": "0.2.0: Filter nach mehreren Räumen und Typen, Handauswahl, Auswahl auf dem Bogen. 0.1.0: Erste Version",\
 	"logsEnabled": true\
 }'
