@@ -27,6 +27,9 @@ jobs:
       - name: Image bauen (linux/arm64)
         run: |
           docker buildx build --platform linux/arm64 -t de/ollo18/hmip/geraeteverwaltung:$VERSION --load .
+          A=$(docker image inspect de/ollo18/hmip/geraeteverwaltung:$VERSION -f '{{.Architecture}}')
+          [ "$A" = "arm64" ] || { echo "Falsche Architektur: $A"; exit 1; }
+          docker image inspect de/ollo18/hmip/geraeteverwaltung:$VERSION -f '{{index .Config.Labels "de.eq3.hmip.plugin.metadata"}}' | node -e 'const j=JSON.parse(require("fs").readFileSync(0,"utf8"));if(j.version!==process.env.VERSION||!j.friendlyName.de)process.exit(1);console.log("Label ok",j.pluginId,j.version)'
           docker save de/ollo18/hmip/geraeteverwaltung:$VERSION | gzip > hmip-geraeteverwaltung-$VERSION.tar.gz
           ls -la *.tar.gz
       - uses: actions/upload-artifact@v4
