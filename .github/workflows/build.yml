@@ -3,6 +3,8 @@ on:
   push:
     branches: [main]
     tags: ["v*"]
+  release:
+    types: [published]
   workflow_dispatch:
 permissions:
   contents: write
@@ -36,8 +38,13 @@ jobs:
         with:
           name: hmip-geraeteverwaltung-${{ env.VERSION }}
           path: hmip-geraeteverwaltung-*.tar.gz
-      - name: Release (nur bei Tag)
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Paket an Release hängen
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" hmip-geraeteverwaltung-*.tar.gz --clobber -R "$GITHUB_REPOSITORY"
+      - name: Release anlegen (bei Tag-Push)
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release create "$GITHUB_REF_NAME" hmip-geraeteverwaltung-*.tar.gz --title "$GITHUB_REF_NAME" --notes "Plugin-Paket für die HCU (über HCUweb hochladen)."
