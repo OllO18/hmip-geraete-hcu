@@ -43,11 +43,12 @@ export function codeContent(d) {
 }
 export const hasCode = (d) => !!(validKey(d.key) || d.raw);
 /* Inhalt für einen erzeugten Aufkleber: vollständig (mit Key) oder, wenn kein Key erfasst ist, nur die SGTIN.
-   Ohne Key reicht der Aufkleber nur für das normale Anlernen mit Internet (Schlüssel kommt vom eQ-3-Server). */
+   Ohne Key reicht der Aufkleber nur für das normale Anlernen mit Internet (Schlüssel kommt vom eQ-3-Server).
+   Format ohne Key: EQ01SG<SGTIN> (wie das Original, ohne den DLK-Teil). Nur die SGTIN allein lehnt die App ab. */
 export function stickerContent(d) {
   const full = codeContent(d);
   if (full) return { text: full, full: true };
-  if (validSgtin(d.sgtin)) return { text: norm(d.sgtin), full: false };
+  if (validSgtin(d.sgtin)) return { text: `EQ01SG${norm(d.sgtin)}`, full: false }; // von der HmIP-App erkannt (getestet 01.11.2026)
   return null;
 }
 
