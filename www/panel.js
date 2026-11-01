@@ -42,6 +42,14 @@ export function codeContent(d) {
   return d.raw || "";
 }
 export const hasCode = (d) => !!(validKey(d.key) || d.raw);
+/* Inhalt für einen erzeugten Aufkleber: vollständig (mit Key) oder, wenn kein Key erfasst ist, nur die SGTIN.
+   Ohne Key reicht der Aufkleber nur für das normale Anlernen mit Internet (Schlüssel kommt vom eQ-3-Server). */
+export function stickerContent(d) {
+  const full = codeContent(d);
+  if (full) return { text: full, full: true };
+  if (validSgtin(d.sgtin)) return { text: norm(d.sgtin), full: false };
+  return null;
+}
 
 /* ---------- QR-Code-Aufkleber (SVG) ---------- */
 export function qrMatrix(text) {
@@ -70,8 +78,9 @@ const groups = (s) => norm(s).match(/.{1,4}/g) || [];
 /* Nachempfunden dem Original-Aufkleber (Hochformat, Breite 50 mm; 1 Einheit = 0,1 mm). Name und Einbauort stehen nicht darauf, sie gehören
    auf den Dokumentationsbogen. Der Schlüssel steht als Text in der gedruckten Schreibweise und steckt zusätzlich im QR-Code. */
 function stickerParts(d) {
-  const text = codeContent(d);
-  if (!text) return null;
+  const sc = stickerContent(d);
+  if (!sc) return null;
+  const text = sc.text;
   const q = qrMatrix(text);
   const area = 370, quiet = 4, m = area / (q.n + 2 * quiet), ox = 65, oy = 108;
   let path = "";
@@ -82,7 +91,11 @@ function stickerParts(d) {
   let y = 520, body = "";
   for (const l of wrap(d.type, 20, 2)) { y += 36; body += `<text x="26" y="${y}" font-size="32" font-weight="bold" fill="#000">${xml(l)}</text>`; }
   y += 14;
-  if (validKey(d.key)) {
+  if (!sc.full) {
+    body += `<text x="26" y="${y + 34}" font-size="23" font-weight="bold" fill="#000">Ohne Key – nur Online-Anlernen</text>
+  <text x="26" y="${y + 64}" font-size="20" fill="#444">Offline an der HCU wird der Original-Key gebraucht.</text>`;
+    y += 82;
+  } else if (validKey(d.key)) {
     const g = keyToPrinted(keyFromInput(d.key)).split("-");
     body += `<text x="26" y="${y + 38}" ${mono}>Key:${xml(g.slice(0, 3).join("-"))}-</text>
   <text x="26" y="${y + 74}" ${mono}>${xml(g.slice(3).join("-"))}</text>`;
@@ -170,7 +183,7 @@ ${noteLines.map((l, k) => `<text x="144" y="${127 + k * 28}" font-size="12.5" fi
       put(d.name, 21);
       put([d.room, d.loc].filter(Boolean).join(" · "), 117);
       put([d.type, d.note].filter(Boolean).join(" · "), 215);
-      if (codeContent(d)) {
+      if (stickerContent(d)) {
         const p0 = stickerParts(d); const w = Math.min(160, (250 * 500) / p0.h);
         s += nestSticker(d, x + 164 + (171 - w) / 2, y + 30, w).svg;
       }
@@ -634,7 +647,7 @@ function init(host) {
   }
   function updateSticker() {
     const d = draft();
-    const svg = validKey(d.key) && validSgtin(d.sgtin) ? stickerSvg(d) : "";
+    const svg = validSgtin(d.sgtin) ? stickerSvg(d) : "";
     $("eStBox").hidden = !svg;
     $("eSticker").innerHTML = $("eStWrap").hidden ? "" : svg;
     if (!svg) $("eStWrap").hidden = true;
@@ -677,7 +690,7 @@ function init(host) {
   const curSvg = () => stickerSvg(draft());
   $("eStSvg").onclick = () => downloadBlob(stName() + ".svg", new Blob([curSvg()], { type: "image/svg+xml" }));
   $("eStPng").onclick = async () => { try { downloadBlob(stName() + ".png", await svgToPng(curSvg())); } catch (e) { alert(errText(e)); } };
-  $("eStPrint").onclick = () => outputPdf(docPages([draft()].filter((d) => codeContent(d)), today()), "dokumentationsbogen.pdf");
+  $("eStPrint").onclick = () => outputPdf(docPages([draft()].filter((d) => stickerContent(d)), today()), "dokumentationsbogen.pdf");
 
   $("fEdit").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -792,7 +805,7 @@ function init(host) {
   };
   $("mDoc").onclick = () => { $("dMenu").close(); const s = sheetSet(); outputPdf(docPages(s.list, today(), s.note), "dokumentationsbogen.pdf"); };
   $("mDocPrint").onclick = () => { $("dMenu").close(); const s = sheetSet(); printPages(docPages(s.list, today(), s.note)); };
-  $("mSheet").onclick = () => { $("dMenu").close(); outputPdf(stickerPages(sheetSet().list.filter((d) => codeContent(d))), "qr-code-aufkleber.pdf"); };
+  $("mSheet").onclick = () => { $("dMenu").close(); outputPdf(stickerPages(sheetSet().list.filter((d) => stickerContent(d))), "qr-code-aufkleber.pdf"); };
   $("mCsv").onclick = () => { exportCsv(); $("dMenu").close(); };
   $("mJson").onclick = () => { exportJson(); $("dMenu").close(); };
   $("mImport").onclick = () => $("fileImport").click();
