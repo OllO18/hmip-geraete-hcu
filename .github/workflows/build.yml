@@ -38,6 +38,14 @@ jobs:
         with:
           name: hmip-geraeteverwaltung-${{ env.VERSION }}
           path: hmip-geraeteverwaltung-*.tar.gz
+      - name: Paket auf Zweig "paket" ablegen (nur main)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir paket && cp hmip-geraeteverwaltung-*.tar.gz paket/ && cd paket
+          git init -q && git add . && git -c user.name=github-actions -c user.email=actions@github.com commit -qm "Paket $VERSION"
+          git push -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:refs/heads/paket
       - name: Paket an Release hängen
         if: github.event_name == 'release'
         env:
