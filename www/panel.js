@@ -299,6 +299,17 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--cyan);outline-of
 .tools button.on{background:var(--navy);color:#fff}
 #fInfo{font-size:13px;color:var(--mut);margin:-4px 2px 10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 #fInfo button{padding:4px 10px;font-size:13px;border-radius:999px;background:#E9EDF1;color:var(--navy)}
+.info{background:#fff;border-radius:20px;margin-bottom:12px;box-shadow:0 1px 3px rgba(14,50,76,.12);border-left:6px solid var(--cyan);overflow:hidden}
+.info summary{cursor:pointer;padding:12px 14px;font-weight:700;color:var(--navy);list-style:none;display:flex;align-items:center;gap:10px}
+.info summary::-webkit-details-marker{display:none}
+.info summary .i{flex:none;width:26px;height:26px;border-radius:50%;background:var(--cyan);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px}
+.info summary .tg{margin-left:auto;font-size:13px;color:var(--mut);font-weight:400}
+.info[open] summary .tg::after{content:"ausblenden"}.info:not([open]) summary .tg::after{content:"anzeigen"}
+.info .body{padding:0 14px 12px;font-size:14.5px;line-height:1.45}
+.info .card{border-radius:14px;padding:10px 12px;margin:8px 0}
+.info .card.full{background:#E6F7FA}.info .card.onl{background:#F3F2F7}
+.info .card .h{display:block;margin-bottom:3px;font-weight:700}
+.info ul{margin:4px 0 0 18px;padding:0}.info li{margin:2px 0}
 .row2{display:flex;gap:10px;position:sticky;bottom:0;background:#fff;padding:6px 0 4px}.row2>*{flex:1}
 .chks{display:flex;flex-direction:column;max-height:28vh;overflow:auto;border:1px solid var(--line);border-radius:14px;padding:4px 10px;background:var(--bg)}
 .chk{display:flex;align-items:center;gap:10px;padding:7px 2px;font-size:15px;cursor:pointer}
@@ -349,6 +360,20 @@ small{color:var(--mut)}
   </div>
 </header>
 <main>
+  <details class="info" id="help" open>
+    <summary><span class="i">i</span>Original-Code und Online-Code: Was ist der Unterschied?<span class="tg"></span></summary>
+    <div class="body">
+      <div class="card full"><span class="h">Original-Code (mit Key) – „QR-Code-Aufkleber erfasst“</span>
+        Der QR-Code des Original-Aufklebers enthält die Gerätenummer (SGTIN) <u>und</u> den Geräteschlüssel (Key).
+        <ul><li>Reicht für jedes Anlernen, auch <b>offline an der HCU</b> ohne Internet (Anwenderhandbuch 5.3.6.2: dafür wird der „Local Key“ vom beiliegenden Aufkleber gebraucht).</li>
+        <li>Den Key gibt es <b>nur auf dem Original-Aufkleber</b>. Weder die HCU noch Home Assistant geben ihn heraus. Deshalb jeden Original-Aufkleber einmal scannen.</li></ul></div>
+      <div class="card onl"><span class="h">Online-Code (ohne Key) – „QR-Code-Aufkleber fehlt“</span>
+        Ist kein Key erfasst, erzeugt die App den Aufkleber nur aus der SGTIN. Er trägt den Hinweis „Ohne Key – nur Online-Anlernen“.
+        <ul><li>Reicht für das <b>normale Anlernen mit Internet</b>: Das Gerät wird dabei über den Homematic-IP-Server registriert; statt des QR-Codes genügen auch die letzten 4 Ziffern der SGTIN (Anwenderhandbuch 5.3.6.1).</li>
+        <li>Reicht <b>nicht</b> für das Offline-Anlernen an der HCU.</li></ul></div>
+      Tipp: Filter → „QR-Code-Aufkleber fehlt“ zeigt, welche Original-Aufkleber noch gescannt werden müssen. Bögen mit Original-Codes enthalten die Geräteschlüssel – sicher aufbewahren.
+    </div>
+  </details>
   <div class="tools">
     <input id="q" type="search" placeholder="Suchen …">
     <button type="button" class="ghost" id="bFilter">Filter</button>
@@ -725,6 +750,8 @@ function init(host) {
   $("fReset").onclick = () => { fRooms.clear(); fTypes.clear(); $("fStatus").value = ""; fillFilterDialog(); render(); };
   $("fDone").onclick = () => $("dFilter").close();
   $("bSelect").onclick = () => { selMode = !selMode; render(); };
+  try { if (localStorage.getItem("hmipHelpClosed") === "1") $("help").open = false; } catch (e) { /* kein Speicher */ }
+  $("help").addEventListener("toggle", () => { try { localStorage.setItem("hmipHelpClosed", $("help").open ? "0" : "1"); } catch (e) { /* kein Speicher */ } });
   $("fInfo").addEventListener("click", (e) => {
     const a = e.target.closest("button[data-a]"); if (!a) return;
     if (a.dataset.a === "clearF") { fRooms.clear(); fTypes.clear(); $("fStatus").value = ""; $("q").value = ""; }
