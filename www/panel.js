@@ -65,7 +65,7 @@ const TYPE_NAMES = {
   "HmIP-SWDM": "Fenster- und Türkontakt mit Magnet",
   "HmIP-SWDM-2": "Fenster- und Türkontakt mit Magnet",
   "HmIP-WTH-1": "Wandthermostat mit Luftfeuchtigkeitssensor",
-  "HmIP-BWTH": "Wandthermostat mit Schaltausgang – für Markenschalter",
+  "HmIP-BWTH": "Wandthermostat mit Schaltausgang – für Markenschalter, 230 V",
   "HmIP-BSL": "Schaltaktor für Markenschalter – mit Signalleuchte",
   "HmIP-BSM": "Schalt-Mess-Aktor für Markenschalter",
   "HmIP-FSM": "Schalt-Mess-Aktor – Unterputz",
@@ -82,6 +82,7 @@ const TYPE_NAMES = {
   "HmIP-SMO230": "Bewegungsmelder mit Schaltaktor – außen",
   "HmIP-SMO230-A": "Bewegungsmelder mit Schaltaktor – außen",
   "HmIP-WRC6": "Wandtaster – 6-fach",
+  "HmIP-WRC6-230": "Wandtaster – 6-fach, 230 V",
   "HmIP-WGC": "Garagentortaster",
   "HmIP-WKP": "Keypad",
   "HmIP-DLP-A": "Türschlossantrieb – pro",
@@ -96,6 +97,47 @@ const TYPE_NAMES = {
   "ELV-SH-SB8": "ELV Smart Home Status-Board",
   "ELV-SH-CTV": "ELV Smart Home Neigungs- und Erschütterungssensor Kompakt",
 };
+/* Kategorien wie auf homematic-ip.com (Produktfilter, ausgelesen am 02.11.2026). Ein Gerät kann in mehreren Kategorien stehen. */
+export const CATEGORIES = ["Access Points & Zentralen", "Heizen & Raumklima", "Licht", "Beschattung", "Sicherheit & Alarm", "Wetter & Umwelt", "Zutritt", "Energiemanagement"];
+const [AP, HZ, LI, BE, SI, WE, ZU, EN] = CATEGORIES;
+const CATS_BY_NAME = {
+  "Home Control Unit": [AP],
+  "Fenster- und Türkontakt – verdeckter Einbau": [HZ, SI],
+  "Fenster- und Türkontakt – optisch": [HZ, SI],
+  "Fenster- und Türkontakt – optisch, plus": [HZ, SI],
+  "Fenster- und Türkontakt mit Magnet": [HZ, SI],
+  "Wandthermostat mit Luftfeuchtigkeitssensor": [HZ],
+  "Wandthermostat mit Schaltausgang – für Markenschalter, 230 V": [HZ],
+  "Schaltaktor für Markenschalter – mit Signalleuchte": [HZ, LI, BE, SI],
+  "Schalt-Mess-Aktor für Markenschalter": [LI],
+  "Schalt-Mess-Aktor – Unterputz": [HZ, LI, EN],
+  "Jalousieaktor für Markenschalter": [HZ, BE, SI],
+  "Rauchwarnmelder mit Q-Label": [SI],
+  "Heizkörperthermostat": [HZ],
+  "Heizkörperthermostat – pure": [HZ],
+  "Heizkörperthermostat – basic": [HZ],
+  "Heizkörperthermostat – Evo": [HZ],
+  "Fußbodenheizungscontroller – 12 Kanäle, motorisch": [HZ],
+  "Schaltaktor für Heizungsanlagen – 2-fach": [HZ],
+  "Bewegungsmelder mit Dämmerungssensor – innen": [LI, SI],
+  "Bewegungsmelder mit Dämmerungssensor – außen": [LI, SI],
+  "Bewegungsmelder mit Schaltaktor – außen": [LI, SI],
+  "Wandtaster – 6-fach": [LI, BE, SI],
+  "Wandtaster – 6-fach, 230 V": [LI, BE, SI],
+  "Garagentortaster": [ZU],
+  "Keypad": [LI, SI, ZU],
+  "Türschlossantrieb – pro": [ZU],
+  "Schaltsteckdose": [HZ, LI, SI],
+  "Schalt-Mess-Kabel – außen": [LI, SI, EN],
+  "Temperatur- und Luftfeuchtigkeitssensor mit Display – innen": [HZ],
+  "Alarmsirene – außen": [SI],
+  "Wassersensor": [SI],
+  "Kontakt-Schnittstelle Unterputz – 1-fach": [HZ, LI, BE, SI, ZU],
+  "Kontakt-Schnittstelle Unterputz – 6-fach": [HZ, LI, BE, SI, ZU],
+  "Schnittstelle für Energiesensoren": [EN], // auf der Homepage als Sets für Gas-, Strom- und Smart-Meter-Zähler, alle unter Energiemanagement
+};
+export const typeCategories = (code) => CATS_BY_NAME[typeName(code)] || [];
+const NOCAT = "\u0000ohne";
 const TYPE_NAMES_UC = Object.fromEntries(Object.entries(TYPE_NAMES).map(([k, v]) => [k.toUpperCase(), v]));
 export function typeName(code) {
   const c = String(code || "").trim().toUpperCase();
@@ -489,6 +531,7 @@ small{color:var(--mut)}
 <dialog id="dFilter"><div class="dlg">
   <h2>Filter</h2>
   <label>Räume</label><div class="chks" id="fRooms"></div>
+  <label>Kategorien (wie auf homematic-ip.com)</label><div class="chks" id="fCats"></div>
   <label>Gerätetypen</label><div class="chks" id="fTypes"></div>
   <label>QR-Code-Aufkleber</label>
   <select id="fStatus"><option value="">Alle Geräte</option><option value="missing">QR-Code-Aufkleber fehlt</option><option value="done">QR-Code-Aufkleber erfasst</option></select>
@@ -650,7 +693,8 @@ function init(host) {
 
   /* ---------- UI ---------- */
   /* Filter: mehrere Räume und Gerätetypen, Status, Suche. Handauswahl hat für die Bögen Vorrang. */
-  const fRooms = new Set(), fTypes = new Set(), picked = new Set();
+  const fRooms = new Set(), fTypes = new Set(), fCats = new Set(), picked = new Set();
+  const catsOf = (d) => { const c = typeCategories(d.type); return c.length ? c : [NOCAT]; };
   let selMode = false;
   const NOROOM = "\u0000ohne";
   const roomOf = (d) => d.room || NOROOM;
@@ -673,11 +717,14 @@ function init(host) {
     const types = [...groups.keys()].sort((a, b) => a.localeCompare(b, "de"));
     const box = (set, v, label, n, sub) => `<label class="chk"><input type="checkbox" data-v="${esc(v)}"${set.has(v) ? " checked" : ""}><span>${esc(label)}${sub ? `<br><small class="code">${esc(sub)}</small>` : ""}</span><span class="n">${n}</span></label>`;
     $("fRooms").innerHTML = rooms.map((r) => box(fRooms, r, r === NOROOM ? "(ohne Raum)" : r, cnt((d) => roomOf(d) === r))).join("") || "<small>Keine Räume</small>";
+    const catList = CATEGORIES.filter((c) => devices.some((d) => catsOf(d).includes(c)));
+    if (devices.some((d) => catsOf(d).includes(NOCAT))) catList.push(NOCAT);
+    $("fCats").innerHTML = catList.map((c) => box(fCats, c, c === NOCAT ? "(ohne Kategorie)" : c, cnt((d) => catsOf(d).includes(c)))).join("") || "<small>Keine Kategorien</small>";
     $("fTypes").innerHTML = types.map((t) => box(fTypes, t, t, cnt((d) => d.type && typeKey(d.type) === t), t === [...groups.get(t)][0] && groups.get(t).size === 1 ? "" : [...groups.get(t)].sort().join(", "))).join("") || "<small>Keine Typen</small>";
   }
   function filtered() {
     const q = $("q").value.trim().toLowerCase(), fs = $("fStatus").value;
-    return devices.filter((d) => (!fRooms.size || fRooms.has(roomOf(d))) && (!fTypes.size || (d.type && fTypes.has(typeKey(d.type)))) &&
+    return devices.filter((d) => (!fRooms.size || fRooms.has(roomOf(d))) && (!fTypes.size || (d.type && fTypes.has(typeKey(d.type)))) && (!fCats.size || catsOf(d).some((c) => fCats.has(c))) &&
       (!fs || (fs === "done") === hasCode(d)) && (!q || [d.name, d.type, typeName(d.type), d.room, d.loc, d.sgtin, d.note].join(" ").toLowerCase().includes(q)))
       .sort(byRoom);
   }
@@ -686,6 +733,7 @@ function init(host) {
   function filterText() {
     const p = [], q = $("q").value.trim(), fs = $("fStatus").value;
     if (fRooms.size) p.push((fRooms.size > 1 ? "Räume: " : "Raum: ") + [...fRooms].map((r) => (r === NOROOM ? "ohne Raum" : r)).sort((a, b) => a.localeCompare(b, "de")).join(", "));
+    if (fCats.size) p.push((fCats.size > 1 ? "Kategorien: " : "Kategorie: ") + CATEGORIES.concat([NOCAT]).filter((c) => fCats.has(c)).map((c) => (c === NOCAT ? "ohne Kategorie" : c)).join(", "));
     if (fTypes.size) p.push((fTypes.size > 1 ? "Gerätetypen: " : "Gerätetyp: ") + [...fTypes].sort((a, b) => a.localeCompare(b, "de")).join(", "));
     if (fs) p.push(fs === "done" ? "QR-Code-Aufkleber erfasst" : "QR-Code-Aufkleber fehlt");
     if (q) p.push(`Suche „${q}“`);
@@ -701,8 +749,8 @@ function init(host) {
   function render() {
     refreshLists();
     const list = filtered(), ft = filterText();
-    $("bFilter").textContent = fRooms.size + fTypes.size + ($("fStatus").value ? 1 : 0) ? `Filter (${fRooms.size + fTypes.size + ($("fStatus").value ? 1 : 0)})` : "Filter";
-    $("bFilter").classList.toggle("on", !!(fRooms.size || fTypes.size || $("fStatus").value));
+    $("bFilter").textContent = fRooms.size + fTypes.size + fCats.size + ($("fStatus").value ? 1 : 0) ? `Filter (${fRooms.size + fTypes.size + fCats.size + ($("fStatus").value ? 1 : 0)})` : "Filter";
+    $("bFilter").classList.toggle("on", !!(fRooms.size || fTypes.size || fCats.size || $("fStatus").value));
     $("bSelect").textContent = selMode ? "Auswahl fertig" : "Auswählen"; $("bSelect").classList.toggle("on", selMode);
     let info = "";
     if (ft) info += `<span>${esc(ft)} – ${list.length} von ${devices.length}</span><button type="button" data-a="clearF">Filter löschen</button>`;
@@ -803,15 +851,15 @@ function init(host) {
   $("q").addEventListener("input", render); $("fStatus").addEventListener("change", render);
   $("bFilter").onclick = () => { fillFilterDialog(); $("dFilter").showModal(); };
   const chkHandler = (set) => (e) => { const c = e.target.closest("input[data-v]"); if (!c) return; c.checked ? set.add(c.dataset.v) : set.delete(c.dataset.v); render(); };
-  $("fRooms").addEventListener("change", chkHandler(fRooms)); $("fTypes").addEventListener("change", chkHandler(fTypes));
-  $("fReset").onclick = () => { fRooms.clear(); fTypes.clear(); $("fStatus").value = ""; fillFilterDialog(); render(); };
+  $("fRooms").addEventListener("change", chkHandler(fRooms)); $("fTypes").addEventListener("change", chkHandler(fTypes)); $("fCats").addEventListener("change", chkHandler(fCats));
+  $("fReset").onclick = () => { fRooms.clear(); fTypes.clear(); fCats.clear(); $("fStatus").value = ""; fillFilterDialog(); render(); };
   $("fDone").onclick = () => $("dFilter").close();
   $("bSelect").onclick = () => { selMode = !selMode; render(); };
   try { if (localStorage.getItem("hmipHelpClosed") === "1") $("help").open = false; } catch (e) { /* kein Speicher */ }
   $("help").addEventListener("toggle", () => { try { localStorage.setItem("hmipHelpClosed", $("help").open ? "0" : "1"); } catch (e) { /* kein Speicher */ } });
   $("fInfo").addEventListener("click", (e) => {
     const a = e.target.closest("button[data-a]"); if (!a) return;
-    if (a.dataset.a === "clearF") { fRooms.clear(); fTypes.clear(); $("fStatus").value = ""; $("q").value = ""; }
+    if (a.dataset.a === "clearF") { fRooms.clear(); fTypes.clear(); fCats.clear(); $("fStatus").value = ""; $("q").value = ""; }
     if (a.dataset.a === "all") filtered().forEach((d) => picked.add(d.id));
     if (a.dataset.a === "none") picked.clear();
     render();
