@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <linearGradient id="frame" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#e3e7ee"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#0b2545" flood-opacity="0.28"/></filter>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0b2545" flood-opacity="0.22"/></filter>
+  </defs>
+  <!-- Rahmen (wie beim WRC6-Plugin) -->
+  <rect x="20" y="20" width="216" height="216" rx="34" fill="url(#frame)" stroke="#c9d0db" stroke-width="2" filter="url(#shadow)"/>
+  <!-- Aufkleber -->
+  <rect x="56" y="48" width="144" height="168" rx="16" fill="#ffffff" stroke="#b9c1cd" stroke-width="2.5" filter="url(#soft)"/>
+  <!-- QR-Muster (stilisiert, kein lesbarer Code) -->
+  <g fill="#0E324C" transform="translate(70 62) scale(5.5238)"><path d="M0 0h7v1h-7zM8 0h2v1h-2zM11 0h1v1h-1zM14 0h7v1h-7zM0 1h1v1h-1zM6 1h1v1h-1zM8 1h2v1h-2zM11 1h2v1h-2zM14 1h1v1h-1zM20 1h1v1h-1zM0 2h1v1h-1zM2 2h3v1h-3zM6 2h1v1h-1zM8 2h3v1h-3zM12 2h1v1h-1zM14 2h1v1h-1zM16 2h3v1h-3zM20 2h1v1h-1zM0 3h1v1h-1zM2 3h3v1h-3zM6 3h1v1h-1zM8 3h1v1h-1zM12 3h1v1h-1zM14 3h1v1h-1zM16 3h3v1h-3zM20 3h1v1h-1zM0 4h1v1h-1zM2 4h3v1h-3zM6 4h1v1h-1zM9 4h1v1h-1zM11 4h2v1h-2zM14 4h1v1h-1zM16 4h3v1h-3zM20 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM8 5h2v1h-2zM11 5h1v1h-1zM14 5h1v1h-1zM20 5h1v1h-1zM0 6h7v1h-7zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h7v1h-7zM9 7h1v1h-1zM11 7h2v1h-2zM0 8h1v1h-1zM2 8h2v1h-2zM6 8h2v1h-2zM10 8h1v1h-1zM15 8h1v1h-1zM17 8h2v1h-2zM20 8h1v1h-1zM1 9h1v1h-1zM7 9h1v1h-1zM16 9h1v1h-1zM0 10h2v1h-2zM3 10h1v1h-1zM5 10h4v1h-4zM10 10h3v1h-3zM14 10h2v1h-2zM20 10h1v1h-1zM0 11h2v1h-2zM4 11h2v1h-2zM7 11h2v1h-2zM11 11h4v1h-4zM0 12h1v1h-1zM5 12h4v1h-4zM10 12h11v1h-11zM10 13h5v1h-5zM19 13h2v1h-2zM0 14h7v1h-7zM8 14h2v1h-2zM11 14h2v1h-2zM15 14h1v1h-1zM17 14h1v1h-1zM0 15h1v1h-1zM6 15h1v1h-1zM9 15h3v1h-3zM15 15h2v1h-2zM0 16h1v1h-1zM2 16h3v1h-3zM6 16h1v1h-1zM10 16h1v1h-1zM12 16h5v1h-5zM19 16h1v1h-1zM0 17h1v1h-1zM2 17h3v1h-3zM6 17h1v1h-1zM10 17h5v1h-5zM0 18h1v1h-1zM2 18h3v1h-3zM6 18h1v1h-1zM8 18h1v1h-1zM14 18h1v1h-1zM16 18h1v1h-1zM19 18h2v1h-2zM0 19h1v1h-1zM6 19h1v1h-1zM10 19h3v1h-3zM15 19h1v1h-1zM19 19h1v1h-1zM0 20h7v1h-7zM8 20h2v1h-2zM14 20h1v1h-1zM17 20h4v1h-4z" stroke="#0E324C" stroke-width="0.06"/></g>
+  <!-- Textzeilen wie auf dem Aufkleber -->
+  <rect x="70" y="188" width="78" height="7" rx="3.5" fill="#0E324C"/>
+  <rect x="70" y="200" width="56" height="6" rx="3" fill="#9aa5b4"/>
+  <!-- Scan-Ecken -->
+  <g fill="none" stroke="#01B7CD" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M40 72 V46 Q40 38 48 38 H74"/><path d="M182 38 H208 Q216 38 216 46 V72"/>
+    <path d="M40 184 V210 Q40 218 48 218 H74"/><path d="M216 184 V210 Q216 218 208 218 H182"/>
+  </g>
+  <!-- Haken -->
+  <circle cx="186" cy="190" r="26" fill="#01B7CD" stroke="#ffffff" stroke-width="5"/>
+  <path d="M174 190.5 l8.5 8.5 l16-17" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
