@@ -425,6 +425,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--cyan);outline-of
 .item .s{color:var(--mut);font-size:14px;word-break:break-word}
 .chev{color:#C3CBD2;font-size:28px;line-height:1;flex:none}
 .pill{display:inline-block;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:700;margin:3px 4px 0 0}
+.pill.chg{background:#FFE7B8;color:#5B4200}.pill.gone{background:#FBE1E1;color:#8A1C1C}
 .pill.ok{background:var(--navy);color:#fff}.pill.miss{background:#E9EDF1;color:var(--grey)}.pill.room{background:#DDF4F7;color:var(--navy)}
 .empty{text-align:center;color:var(--mut);padding:40px 10px}
 dialog{border:0;border-radius:24px;padding:0;width:min(94vw,560px);max-height:92vh;overflow-y:auto;overscroll-behavior:contain;background:#fff;color:var(--navy)}
@@ -534,13 +535,13 @@ small{color:var(--mut)}
   <label>Kategorien (wie auf homematic-ip.com)</label><div class="chks" id="fCats"></div>
   <label>Gerätetypen</label><div class="chks" id="fTypes"></div>
   <label>QR-Code-Aufkleber</label>
-  <select id="fStatus"><option value="">Alle Geräte</option><option value="missing">QR-Code-Aufkleber fehlt</option><option value="done">QR-Code-Aufkleber erfasst</option></select>
+  <select id="fStatus"><option value="">Alle Geräte</option><option value="missing">QR-Code-Aufkleber fehlt</option><option value="done">QR-Code-Aufkleber erfasst</option><option value="srcchg">In {{SRC}} geändert</option><option value="gone">Nicht mehr in {{SRC}}</option></select>
   <div class="row2"><button type="button" class="ghost" id="fReset">Zurücksetzen</button><button type="button" class="pri" id="fDone">Fertig</button></div>
 </div></dialog>
 <dialog id="dMenu"><div class="dlg">
   <h2>Übernahme, Aufkleber, Export</h2>
   <button class="pri" id="mHa">Geräte aus {{SRC}} übernehmen</button>
-  <small>Liest alle eQ-3-Geräte mit Seriennummer aus {{SRC}} (Name, Typ, Raum, Firmware). Vorhandene Einträge und deine Eingaben bleiben erhalten.</small>
+  <small>Liest alle eQ-3-Geräte mit Seriennummer aus {{SRC}} (Name, Typ, Raum, Firmware). Vorhandene Einträge und deine Eingaben bleiben erhalten. Der Abgleich läuft auch automatisch beim Öffnen dieser Seite; geänderte Namen und Räume sowie entfernte Geräte werden markiert.</small>
   <button class="pri" id="mDoc">Dokumentationsbogen als PDF (Filter bzw. Auswahl)</button>
   <small>Nachbau des Homematic-IP-Vordrucks mit Gerätename, Raum und QR-Code-Aufkleber, 6 Geräte je A4-Seite. Auf dem Smartphone teilen oder speichern, dann drucken.</small>
   <button class="ghost" id="mDocPrint">Dokumentationsbogen drucken (PC)</button>
@@ -558,7 +559,12 @@ const DEFAULT_CFG = {
   source: "Home Assistant",
   storageNote: "Die Daten liegen in Home Assistant (.storage) und sind in dessen Backups enthalten. Das Panel ist nur für Administratoren sichtbar.",
 };
-const FIELDS = ["id", "raw", "sgtin", "key", "fmt", "name", "type", "room", "loc", "note", "fw", "created", "updated"];
+const FIELDS = ["id", "raw", "sgtin", "key", "fmt", "name", "type", "room", "loc", "note", "fw", "created", "updated",
+  "src_name", "src_room", "src_type", "ack_name", "ack_room", "missing"];
+/* Abgleich mit der Quelle: Name/Raum weichen ab und sind nicht bestätigt; Gerät gibt es in der Quelle nicht mehr */
+const SRC_FIELDS = { name: "Name", room: "Raum" };
+const pendingOf = (d, vals = d) => Object.keys(SRC_FIELDS).filter((k) => { const s = d["src_" + k] || ""; return s && s !== (vals[k] || "") && s !== (d["ack_" + k] || ""); });
+const isGone = (d) => d.missing === "1";
 
 function init(host) {
   const root = host.shadowRoot, cfg = host.cfg || DEFAULT_CFG;
@@ -725,7 +731,7 @@ function init(host) {
   function filtered() {
     const q = $("q").value.trim().toLowerCase(), fs = $("fStatus").value;
     return devices.filter((d) => (!fRooms.size || fRooms.has(roomOf(d))) && (!fTypes.size || (d.type && fTypes.has(typeKey(d.type)))) && (!fCats.size || catsOf(d).some((c) => fCats.has(c))) &&
-      (!fs || (fs === "done") === hasCode(d)) && (!q || [d.name, d.type, typeName(d.type), d.room, d.loc, d.sgtin, d.note].join(" ").toLowerCase().includes(q)))
+      (!fs || (fs === "srcchg" ? pendingOf(d).length > 0 : fs === "gone" ? isGone(d) : (fs === "done") === hasCode(d))) && (!q || [d.name, d.type, typeName(d.type), d.room, d.loc, d.sgtin, d.note].join(" ").toLowerCase().includes(q)))
       .sort(byRoom);
   }
   const byRoom = (a, b) => (!a.room - !b.room) || (a.room || "").localeCompare(b.room || "", "de") || (a.name || "").localeCompare(b.name || "", "de");
@@ -735,7 +741,7 @@ function init(host) {
     if (fRooms.size) p.push((fRooms.size > 1 ? "Räume: " : "Raum: ") + [...fRooms].map((r) => (r === NOROOM ? "ohne Raum" : r)).sort((a, b) => a.localeCompare(b, "de")).join(", "));
     if (fCats.size) p.push((fCats.size > 1 ? "Kategorien: " : "Kategorie: ") + CATEGORIES.concat([NOCAT]).filter((c) => fCats.has(c)).map((c) => (c === NOCAT ? "ohne Kategorie" : c)).join(", "));
     if (fTypes.size) p.push((fTypes.size > 1 ? "Gerätetypen: " : "Gerätetyp: ") + [...fTypes].sort((a, b) => a.localeCompare(b, "de")).join(", "));
-    if (fs) p.push(fs === "done" ? "QR-Code-Aufkleber erfasst" : "QR-Code-Aufkleber fehlt");
+    if (fs) p.push({ done: "QR-Code-Aufkleber erfasst", missing: "QR-Code-Aufkleber fehlt", srcchg: `In ${cfg.source} geändert`, gone: `Nicht mehr in ${cfg.source}` }[fs]);
     if (q) p.push(`Suche „${q}“`);
     return p.join(" · ");
   }
@@ -756,6 +762,9 @@ function init(host) {
     if (ft) info += `<span>${esc(ft)} – ${list.length} von ${devices.length}</span><button type="button" data-a="clearF">Filter löschen</button>`;
     if (selMode || picked.size) info += `<span><b>${picked.size} ausgewählt</b>${picked.size ? " – Bögen enthalten nur diese Geräte" : ""}</span>` +
       (selMode ? `<button type="button" data-a="all">Alle angezeigten</button>` : "") + (picked.size ? `<button type="button" data-a="none">Auswahl aufheben</button>` : "");
+    const nChg = devices.filter((d) => pendingOf(d).length).length, nGone = devices.filter(isGone).length;
+    if (nChg) info += `<span><b>${nChg} ${nChg === 1 ? "Gerät" : "Geräte"} in ${esc(cfg.source)} geändert</b> (Name oder Raum)</span><button type="button" data-a="showChg">Anzeigen</button><button type="button" data-a="takeAll">Alle übernehmen</button>`;
+    if (nGone) info += `<span><b>${nGone} nicht mehr in ${esc(cfg.source)}</b></span><button type="button" data-a="showGone">Anzeigen</button>`;
     $("fInfo").innerHTML = info; $("fInfo").hidden = !info;
     $("count").textContent = `${devices.length} Geräte · QR-Code-Aufkleber ${devices.filter(hasCode).length}/${devices.length}`;
     $("list").innerHTML = list.length ? list.map((d) => {
@@ -766,7 +775,7 @@ function init(host) {
         <div class="main">
           <div class="t">${esc(d.name || d.type || "(ohne Name)")}</div>
           <div class="s">${esc(typeLabel(d.type))}${d.type && d.sgtin ? " · " : ""}${d.sgtin ? "SGTIN …" + esc(last4(d.sgtin)) : ""}${d.fw ? " · FW " + esc(d.fw) : ""}</div>
-          <div><span class="pill ${ok ? "ok" : "miss"}">${ok ? "QR-Code-Aufkleber erfasst" : "QR-Code-Aufkleber fehlt"}</span>${d.room ? `<span class="pill room">${esc(d.room)}</span>` : ""}${d.loc ? `<span class="s">${esc(d.loc)}</span>` : ""}</div>
+          <div><span class="pill ${ok ? "ok" : "miss"}">${ok ? "QR-Code-Aufkleber erfasst" : "QR-Code-Aufkleber fehlt"}</span>${d.room ? `<span class="pill room">${esc(d.room)}</span>` : ""}${pendingOf(d).length ? `<span class="pill chg">In ${esc(cfg.source)} geändert</span>` : ""}${isGone(d) ? `<span class="pill gone">Nicht mehr in ${esc(cfg.source)}</span>` : ""}${d.loc ? `<span class="s">${esc(d.loc)}</span>` : ""}</div>
         </div><span class="chev">›</span></div>`;
     }).join("") :
       `<div class="empty">${devices.length ? "Keine Treffer." : "Noch keine Geräte.<br>Öffne das Menü (⋯) und übernimm die Geräte aus " + cfg.source + ", oder tippe auf „Scannen“."}</div>`;
@@ -804,6 +813,10 @@ function init(host) {
     if (cur) {
       const sg = norm($("eSgtin").value), k = norm($("eKey").value), kOk = keyFromInput($("eKey").value);
       const dup = findDup(sg, cur.raw, cur.id);
+      const vals = { name: $("eName").value.trim(), room: $("eRoom").value.trim() };
+      for (const k of pendingOf(cur, vals)) h += `<div class="msg warn">In ${esc(cfg.source)} lautet der ${SRC_FIELDS[k]} jetzt „${esc(cur["src_" + k])}“ (hier: „${esc(vals[k] || "leer")}“).
+        <div class="row2" style="margin-top:6px;background:transparent;position:static"><button type="button" class="ghost" data-take="${k}">Übernehmen</button><button type="button" class="ghost" data-keep="${k}">Beibehalten</button></div></div>`;
+      if (isGone(cur)) h += `<div class="msg warn">Dieses Gerät gibt es in ${esc(cfg.source)} nicht mehr. Wenn es endgültig entfernt wurde, kannst du es hier löschen.</div>`;
       if (dup) h += `<div class="msg warn">Achtung: Diese SGTIN ist schon erfasst als „${esc(dup.name || dup.type || "ohne Name")}“ (${esc(dup.room || "ohne Raum")}).</div>`;
       if (sg && !validSgtin(sg)) h += `<div class="msg warn">Eine SGTIN hat 24 Zeichen (0–9, A–F). Hier sind es ${sg.length}.</div>`;
       if (k && !kOk) h += `<div class="msg warn">Der Geräteschlüssel besteht aus 32 Zeichen (0–9, A–F) oder aus 26 Zeichen in der gedruckten Schreibweise (XXXXX-XXXXX-XXXXX-XXXXX-XXXXXX). Hier sind es ${k.length}. Er wird so nicht gespeichert.</div>`;
@@ -811,6 +824,21 @@ function init(host) {
     $("eMsg").innerHTML = h;
   }
 
+  $("eMsg").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-take],button[data-keep]"); if (!b || !cur) return;
+    if (b.dataset.take) { const k = b.dataset.take; $(k === "name" ? "eName" : "eRoom").value = cur["src_" + k]; }
+    if (b.dataset.keep) cur["ack_" + b.dataset.keep] = cur["src_" + b.dataset.keep];
+    showMsg("Mit „Speichern“ übernehmen.");
+  });
+  /* Alle offenen Änderungen aus der Quelle übernehmen */
+  async function takeAll() {
+    const list = devices.filter((d) => pendingOf(d).length);
+    if (!list.length || !confirm(`Name bzw. Raum von ${list.length} ${list.length === 1 ? "Gerät" : "Geräten"} aus ${cfg.source} übernehmen? Deine bisherigen Werte werden dabei überschrieben.`)) return;
+    try {
+      for (const d of list) { const n = { ...d }; for (const k of pendingOf(d)) n[k] = d["src_" + k]; n.updated = new Date().toISOString(); await dbSave(n); }
+      devices = await dbAll(); render(); toast(`${list.length} übernommen`);
+    } catch (e) { alert("Übernehmen fehlgeschlagen: " + errText(e)); }
+  }
   ["eSgtin", "eKey", "eName", "eType", "eRoom", "eLoc"].forEach((id) => $(id).addEventListener("input", () => {
     if (id === "eSgtin") setLast4($("eSgtin").value);
     showMsg(); updateSticker();
@@ -862,6 +890,9 @@ function init(host) {
     if (a.dataset.a === "clearF") { fRooms.clear(); fTypes.clear(); fCats.clear(); $("fStatus").value = ""; $("q").value = ""; }
     if (a.dataset.a === "all") filtered().forEach((d) => picked.add(d.id));
     if (a.dataset.a === "none") picked.clear();
+    if (a.dataset.a === "showChg") $("fStatus").value = "srcchg";
+    if (a.dataset.a === "showGone") $("fStatus").value = "gone";
+    if (a.dataset.a === "takeAll") { takeAll(); return; }
     render();
   });
 
@@ -932,7 +963,7 @@ function init(host) {
     try {
       const r = await ws({ type: "hmip_geraete/import_ha" });
       devices = await dbAll(); render(); $("dMenu").close();
-      toast(`Aus ${cfg.source}: ${r.added} neu, ${r.updated} aktualisiert`);
+      toast(importText(r));
     } catch (e) { alert("Übernahme fehlgeschlagen: " + errText(e)); }
     $("mHa").disabled = false;
   };
@@ -944,8 +975,21 @@ function init(host) {
   $("mImport").onclick = () => $("fileImport").click();
   $("fileImport").addEventListener("change", (e) => { const f = e.target.files[0]; e.target.value = ""; if (f) { importJson(f); $("dMenu").close(); } });
 
-  /* ---------- Start ---------- */
-  dbAll().then((l) => { devices = l; render(); }).catch((e) => { render(); alert("Daten konnten nicht geladen werden: " + errText(e)); });
+  function importText(r) {
+    const p = [`${r.added} neu`, `${r.updated} aktualisiert`];
+    if (r.changes) p.push(`${r.changes} geändert`);
+    if (r.removed) p.push(`${r.removed} nicht mehr vorhanden`);
+    return `Aus ${cfg.source}: ${p.join(", ")}`;
+  }
+  /* ---------- Start: Liste laden, dann still mit der Quelle abgleichen ---------- */
+  dbAll().then((l) => { devices = l; render(); }).catch((e) => { render(); alert("Daten konnten nicht geladen werden: " + errText(e)); })
+    .then(async () => {
+      try {
+        const r = await ws({ type: "hmip_geraete/import_ha" });
+        devices = await dbAll(); render();
+        if (r.added || r.removed) toast(importText(r));
+      } catch (e) { /* Abgleich beim Öffnen ist optional */ }
+    });
   render();
 }
 

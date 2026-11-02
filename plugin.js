@@ -22,8 +22,8 @@ const pending = new Map();
 function connect() {
   let token;
   try { token = fs.readFileSync(tokenFile, "utf8").trim(); } catch (e) { log("Token nicht lesbar:", e.message); return setTimeout(connect, 10000); }
-  ws = new WebSocket(WSS_URL, { rejectUnauthorized: false, headers: { authtoken: token, "plugin-id": pluginId } });
-  ws.on("open", () => { ready = true; log("Mit der HCU verbunden"); sendState(crypto.randomUUID()); send(crypto.randomUUID(), "SYSTEM_INFO_REQUEST", {}); });
+  ws = new WebSocket(WSS_URL, { rejectUnauthorized: false, headers: { authtoken: token, "plugin-id": pluginId, "hmip-system-events": "true" } });
+  ws.on("open", () => { ready = true; log("Mit der HCU verbunden"); sendState(crypto.randomUUID()); send(crypto.randomUUID(), "SYSTEM_INFO_REQUEST", {}); scheduleSync("Start"); });
   ws.on("message", (data) => {
     let m; try { m = JSON.parse(data); } catch (e) { return; }
     if (m.type === "PLUGIN_STATE_REQUEST") return sendState(m.id);
@@ -31,6 +31,7 @@ function connect() {
     if (m.type === "SYSTEM_INFO_RESPONSE") { const ip = m.body && m.body.ipAddress; if (typeof ip === "string" && ip && ip !== hcuIp) { hcuIp = ip; log("IP-Adresse der HCU:", ip); } return; }
     if (m.type === "CONFIG_TEMPLATE_REQUEST") return send(m.id, "CONFIG_TEMPLATE_RESPONSE", configTemplate((m.body && m.body.languageCode) || "de"));
     if (m.type === "CONFIG_UPDATE_REQUEST") return send(m.id, "CONFIG_UPDATE_RESPONSE", { status: "APPLIED" });
+    if (m.type === "HMIP_SYSTEM_EVENT") return onSystemEvent(m.body);
     if (m.type === "HMIP_SYSTEM_RESPONSE" && pending.has(m.id)) { const p = pending.get(m.id); pending.delete(m.id); clearTimeout(p.t); p.res(m.body); }
   });
   ws.on("error", (e) => log("WebSocket-Fehler:", e.code || "", e.message || e));
@@ -71,6 +72,29 @@ function systemRequest(p, body = {}) {
     ws.send(JSON.stringify({ id, pluginId, type: "HMIP_SYSTEM_REQUEST", body: { path: p, body } }));
   });
 }
+/* Automatische Übernahme: bei neu angelernten, entfernten oder umbenannten Geräten und bei Raumänderungen
+   (Gruppen vom Typ META) den Systemzustand holen und abgleichen. Zustandsänderungen (Fenster auf/zu usw.) lösen nichts aus. */
+let syncTimer = null, store = null;
+function scheduleSync(reason) {
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(async () => {
+    try { const st = await getHcuState(); const r = store.importHcu(st.devices); log(`Abgleich (${reason}): ${r.added} neu, ${r.updated} aktualisiert, ${r.removed} entfernt, ${r.changes} Änderungen offen`); }
+    catch (e) { log("Abgleich fehlgeschlagen:", e.message); }
+  }, 4000);
+}
+function onSystemEvent(body) {
+  const evs = Object.values((body && body.eventTransaction && body.eventTransaction.events) || {});
+  for (const ev of evs) {
+    const t = ev.pushEventType;
+    if (t === "DEVICE_ADDED" || t === "DEVICE_REMOVED" || t === "GROUP_ADDED" || t === "GROUP_REMOVED") return scheduleSync(t);
+    if (t === "GROUP_CHANGED" && ev.group && ev.group.type === "META") return scheduleSync(t);
+    if (t === "DEVICE_CHANGED" && ev.device && store) {
+      const sg = String(ev.device.id || "").toUpperCase();
+      const rec = store.list().find((d) => d.sgtin === sg);
+      if (rec && (ev.device.label || "") !== (rec.src_name || "")) return scheduleSync("Gerät umbenannt");
+    }
+  }
+}
 async function getHcuState() {
   const r = await systemRequest("/hmip/home/getSystemState");
   if (!r || r.code !== 200) throw Object.assign(new Error("Die HCU lieferte keinen Systemzustand (Code " + (r && r.code) + ")"), { code: "hcu_unavailable" });
@@ -78,7 +102,7 @@ async function getHcuState() {
 }
 
 (async () => {
-  const store = new DeviceStore(DATA_DIR), auth = new Auth(DATA_DIR);
+  store = new DeviceStore(DATA_DIR); const auth = new Auth(DATA_DIR);
   let last4 = ""; try { last4 = fs.readFileSync("/SGTIN", "utf8").trim().slice(-4); } catch (e) { /* außerhalb der HCU */ }
   const hosts = ["localhost"]; if (last4) hosts.unshift(`hcu1-${last4}.local`);
   const start = createServer({ store, auth, www: path.join(__dirname, "www"), getHcuState, dir: DATA_DIR, hosts });

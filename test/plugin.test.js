@@ -25,7 +25,7 @@ test("Systemzustand: SGTIN, Raum aus META-Gruppe, Fremdgeräte übersprungen", (
 
 test("Speicher: Übernahme, eigene Eingaben bleiben, Bereinigung", () => {
   const dir = tmp(), s = new DeviceStore(dir);
-  assert.deepStrictEqual(s.importHcu(parseSystemState(STATE).devices), { added: 2, updated: 0 });
+  assert.deepStrictEqual(s.importHcu(parseSystemState(STATE).devices), { added: 2, updated: 0, removed: 0, changes: 0 });
   const d = s.list().find((x) => x.sgtin.endsWith("A1"));
   s.save({ ...d, room: "Eigener Raum", key: "0011-2233 4455 6677 8899 aabb ccdd eeff", fmt: "eq01", name: "<b>" });
   s.importHcu(parseSystemState(STATE).devices);
@@ -48,4 +48,23 @@ test("Passwort: festlegen, anmelden, Sperre nach Fehlversuchen", () => {
   for (let i = 0; i < 5; i++) assert.throws(() => b.login("falsch", "9.9.9.9"), /Passwort falsch/);
   assert.throws(() => b.login("geheim123", "9.9.9.9"), /Zu viele Versuche/);
   assert.ok(b.check(b.login("geheim123", "1.1.1.1")));
+});
+
+test("Abgleich: Änderungen und entfernte Geräte werden markiert", () => {
+  const { pending } = require("../lib/store");
+  const dir = tmp(), s = new DeviceStore(dir);
+  const items = parseSystemState(STATE).devices;
+  s.importHcu(items);
+  const a1 = s.list().find((x) => x.sgtin.endsWith("A1"));
+  s.save({ ...a1, name: "Eigener Name" });
+  let r = s.importHcu(items);
+  assert.strictEqual(r.changes, 1);
+  s.save({ ...s.list().find((x) => x.id === a1.id), ack_name: "Fenster" });
+  r = s.importHcu(items);
+  assert.strictEqual(r.changes, 0);
+  r = s.importHcu(items.filter((x) => !x.sgtin.endsWith("A2")));
+  assert.strictEqual(r.removed, 1);
+  assert.strictEqual(s.list().find((x) => x.sgtin.endsWith("A2")).missing, "1");
+  assert.strictEqual(s.importHcu(items.filter((x) => !x.sgtin.endsWith("A2"))).removed, 0);
+  assert.strictEqual(pending(s.list().find((x) => x.id === a1.id)), false);
 });
