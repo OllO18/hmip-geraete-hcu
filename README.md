@@ -22,6 +22,7 @@ Browser geben die Kamera nur auf HTTPS-Seiten frei. Das Plugin erzeugt beim erst
 
 - Die Geräteliste liegt in `/data/devices.json` (bleibt bei Updates erhalten) und enthält die Geräteschlüssel.
 - Zugriff nur mit Passwort (scrypt-Hash in `/data/auth.json`); nach 5 Fehlversuchen wird kurz gesperrt.
+- Passwort ändern: Menü → „Passwort ändern“. Vergessen: in HCUweb in den Plugin-Einstellungen „Passwort der Weboberfläche zurücksetzen“ einschalten und speichern, danach beim nächsten Aufruf neu festlegen. Die Gerätedaten bleiben erhalten.
 - Port: 8443 (änderbar über die Umgebungsvariable `WEB_PORT` im Dockerfile).
 
 ## Entwicklung

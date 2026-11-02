@@ -256,13 +256,13 @@ function nestSticker(d, x, y, w) {
   return { h, svg: `<svg x="${x}" y="${y}" width="${w}" height="${h.toFixed(1)}" viewBox="0 0 500 ${p.h}">${p.inner}</svg>` };
 }
 const BOX = { x0: 63, dx: 366, y0: 188, dy: 321, w: 335, h: 291 };
-export function docPages(devices, when = "", note = "") {
+export function docPages(devices, when = "", note = "", title = "") {
   const noteLines = wrap(note, 92, 2);
   const total = Math.max(1, Math.ceil(devices.length / 6)), pages = [];
   for (let p = 0; p < total; p++) {
     let s = `<rect width="${PW}" height="94" fill="#0C3358"/>
 <text x="60" y="55" font-size="21" font-weight="bold" fill="#fff">Übersicht der Homematic IP Komponenten</text>
-<text x="767" y="55" text-anchor="end" font-size="13" fill="#fff">${xml(when ? when + " · " : "")}Seite ${p + 1} von ${total}</text>
+<text x="767" y="${title ? 44 : 55}" text-anchor="end" font-size="13" fill="#fff">${xml(when ? "Stand " + when + " · " : "")}Seite ${p + 1} von ${total}</text>${title ? `<text x="767" y="68" text-anchor="end" font-size="15" font-weight="bold" fill="#fff">${xml(cut(title, 34))}</text>` : ""}
 <text x="63" y="131" font-size="17" fill="#484A4B">Notizen:</text>
 <line x1="140" y1="132" x2="764" y2="132" stroke="#555" stroke-width="1"/><line x1="140" y1="160" x2="764" y2="160" stroke="#555" stroke-width="1"/>
 ${noteLines.map((l, k) => `<text x="144" y="${127 + k * 28}" font-size="12.5" fill="#0E324C">${xml(l)}</text>`).join("")}`;
@@ -288,17 +288,18 @@ ${noteLines.map((l, k) => `<text x="144" y="${127 + k * 28}" font-size="12.5" fi
   }
   return pages;
 }
-export function stickerPages(devices) {
-  const pages = [], cw = 189, gap = 30, x0 = (PW - (3 * cw + 2 * gap)) / 2, bottom = PH - 38;
-  let s = "", y = 38;
+export function stickerPages(devices, title = "", when = "") {
+  const pages = [], cw = 189, gap = 30, x0 = (PW - (3 * cw + 2 * gap)) / 2, bottom = PH - 38, top = title ? 62 : 38;
+  let s = "", y = top;
   for (let i = 0; i < devices.length; i += 3) {
     const row = devices.slice(i, i + 3).map((d, c) => nestSticker(d, x0 + c * (cw + gap), y, cw));
     const rh = Math.max(...row.map((r) => r.h));
-    if (y + rh > bottom && s) { pages.push(pageSvg(s)); s = ""; y = 38; row.forEach((r, c) => { r.svg = nestSticker(devices[i + c], x0 + c * (cw + gap), y, cw).svg; }); }
+    if (y + rh > bottom && s) { pages.push(s); s = ""; y = top; row.forEach((r, c) => { r.svg = nestSticker(devices[i + c], x0 + c * (cw + gap), y, cw).svg; }); }
     s += row.map((r) => r.svg).join(""); y += rh + 22;
   }
-  if (s) pages.push(pageSvg(s));
-  return pages;
+  if (s) pages.push(s);
+  const n = pages.length;
+  return pages.map((p, i) => pageSvg((title ? `<text x="${x0}" y="34" font-size="14" font-weight="bold" fill="#0E324C">${xml(cut(title, 50))}</text><text x="${PW - x0}" y="34" text-anchor="end" font-size="12" fill="#4F5054">${xml(when ? "Stand " + when + " · " : "")}Seite ${i + 1} von ${n}</text>` : "") + p));
 }
 /* Druckansicht für den PC: Seiten als Vektorgrafik */
 export function sheetHtml(pages) {
@@ -405,6 +406,8 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--cyan);outline-of
 .info .card.full{background:#E6F7FA}.info .card.onl{background:#F3F2F7}
 .info .card .h{display:block;margin-bottom:3px;font-weight:700}
 .info ul{margin:4px 0 0 18px;padding:0}.info li{margin:2px 0}
+.ver{display:block;text-align:center;color:var(--mut);margin-top:4px}
+.help b{display:block;margin-top:8px}.help p{margin:2px 0 0;font-size:14.5px}
 .row2{display:flex;gap:10px;position:sticky;bottom:0;background:#fff;padding:6px 0 4px}.row2>*{flex:1}
 .chks{display:flex;flex-direction:column;max-height:28vh;overflow:auto;border:1px solid var(--line);border-radius:14px;padding:4px 10px;background:var(--bg)}
 .chk{display:flex;align-items:center;gap:10px;padding:7px 2px;font-size:15px;cursor:pointer}
@@ -542,22 +545,61 @@ small{color:var(--mut)}
   <h2>Übernahme, Aufkleber, Export</h2>
   <button class="pri" id="mHa">Geräte aus {{SRC}} übernehmen</button>
   <small>Liest alle eQ-3-Geräte mit Seriennummer aus {{SRC}} (Name, Typ, Raum, Firmware). Vorhandene Einträge und deine Eingaben bleiben erhalten. Der Abgleich läuft auch automatisch beim Öffnen dieser Seite; geänderte Namen und Räume sowie entfernte Geräte werden markiert.</small>
-  <button class="pri" id="mDoc">Dokumentationsbogen als PDF (Filter bzw. Auswahl)</button>
-  <small>Nachbau des Homematic-IP-Vordrucks mit Gerätename, Raum und QR-Code-Aufkleber, 6 Geräte je A4-Seite. Auf dem Smartphone teilen oder speichern, dann drucken.</small>
-  <button class="ghost" id="mDocPrint">Dokumentationsbogen drucken (PC)</button>
-  <button class="ghost" id="mSheet">Nur QR-Code-Aufkleber als PDF (Filter bzw. Auswahl)</button>
+  <button class="pri" id="mPrint">Ausdrucke erstellen …</button>
+  <small>Dokumentationsbogen (Nachbau des Homematic-IP-Vordrucks) oder nur QR-Code-Aufkleber, aufgeteilt nach Räumen, Funktion oder Alphabet. Jeder Bogen beginnt auf einer neuen Seite und lässt sich einzeln neu drucken und austauschen.</small>
   <button class="ghost" id="mCsv">CSV für Excel exportieren</button>
   <small>Die CSV enthält keine Geräteschlüssel.</small>
   <button class="ghost" id="mJson">Backup (JSON, enthält die Geräteschlüssel)</button>
   <button class="ghost" id="mImport">Backup importieren</button>
   <small>{{STORAGE_NOTE}} Backups aus früheren Versionen lassen sich importieren (Fotos werden nicht mehr übernommen).</small>
+  <button class="ghost" id="mHelp">Anleitung</button>
+  <button class="ghost" id="mPw" hidden>Passwort ändern</button>
+  <button class="ghost" id="mLogout" hidden>Abmelden</button>
   <button class="ghost" id="mClose">Schließen</button>
+  <small class="ver">HmIP Geräteverwaltung · Version <span class="vno"></span></small>
 </div></dialog>
+<dialog id="dPrint"><div class="dlg">
+  <h2>Ausdrucke</h2>
+  <label>Vorlage</label>
+  <select id="pTpl"><option value="room">Nach Räumen (je Raum ein Bogen)</option><option value="func">Nach Funktion (je Kategorie ein Bogen)</option><option value="alpha">Alphabetisch (je Anfangsbuchstabe ein Bogen)</option><option value="sel">Aktueller Filter bzw. Auswahl (ein Bogen)</option></select>
+  <label>Inhalt</label>
+  <select id="pKind"><option value="doc">Dokumentationsbogen (6 Geräte je Seite)</option><option value="stk">Nur QR-Code-Aufkleber</option></select>
+  <label>Bögen <small>(nur angehakte werden gedruckt)</small></label>
+  <div class="row2" style="position:static;padding:0"><button type="button" class="ghost" id="pAll">Alle</button><button type="button" class="ghost" id="pNone">Keine</button></div>
+  <div class="chks" id="pSecs" style="max-height:40vh"></div>
+  <small>Jeder Bogen beginnt auf einer neuen Seite; Kopfzeile mit Bogenname, Stand und Seitenzahl. So lässt sich nach Änderungen nur der betroffene Bogen neu drucken und im Ordner austauschen. „Zuletzt geändert“ zeigt, wann sich ein Gerät des Bogens zuletzt geändert hat.</small>
+  <div class="row2"><button type="button" class="ghost" id="pPrint">Drucken (PC)</button><button type="button" class="pri" id="pPdf">PDF erstellen</button></div>
+  <button type="button" class="ghost" id="pClose">Schließen</button>
+</div></dialog>
+<dialog id="dHelp"><div class="dlg">
+  <h2>Anleitung</h2>
+  <div class="help">
+  <b>1. Geräte übernehmen</b><p>Die Geräte kommen automatisch aus {{SRC}} (Name, Typ, Raum, Firmware, Seriennummer). Über Menü → „Geräte aus {{SRC}} übernehmen“ geht es auch von Hand.</p>
+  <b>2. Original-Aufkleber scannen</b><p>„Scannen“ öffnet die Kamera, „Foto“ liest ein Bild aus. Der Code wird dem Gerät mit derselben Seriennummer zugeordnet; so wird der Geräteschlüssel (Key) gespeichert. Ohne Key erzeugt die App einen Online-Code (siehe Erklärung oben auf der Seite).</p>
+  <b>3. Ergänzen</b><p>Gerät antippen: Einbauort und Notiz eintragen, speichern.</p>
+  <b>4. Ausdrucken</b><p>Menü → „Ausdrucke erstellen“: Vorlage wählen (Räume, Funktion, Alphabet), Bögen anhaken, als PDF speichern oder am PC drucken. Ändert sich später etwas, nur den betroffenen Bogen neu drucken und austauschen.</p>
+  <b>5. Änderungen</b><p>Werden Geräte in {{SRC}} umbenannt, verschoben oder entfernt, markiert die Liste sie. Im Gerät „Übernehmen“ oder „Beibehalten“ wählen.</p>
+  <b>6. Sichern</b><p>Menü → „Backup (JSON)“ sichert alles inklusive Geräteschlüsseln. Bögen und Backups enthalten die Schlüssel – sicher aufbewahren.</p>
+  {{HELP_EXTRA}}
+  </div>
+  <small class="ver">Version <span class="vno"></span></small>
+  <button type="button" class="ghost" id="hClose">Schließen</button>
+</div></dialog>
+<dialog id="dPw"><form class="dlg" id="fPw" method="dialog">
+  <h2>Passwort ändern</h2>
+  <div><label>Bisheriges Passwort</label><input id="pwOld" type="password" autocomplete="current-password"></div>
+  <div><label>Neues Passwort (mindestens 8 Zeichen)</label><input id="pwNew" type="password" autocomplete="new-password"></div>
+  <div><label>Neues Passwort wiederholen</label><input id="pwNew2" type="password" autocomplete="new-password"></div>
+  <div id="pwMsg"></div>
+  <div class="row2"><button type="button" class="ghost" id="pwCancel">Abbrechen</button><button type="submit" class="pri">Ändern</button></div>
+</form></dialog>
 `;
 
 const DEFAULT_CFG = {
   source: "Home Assistant",
   storageNote: "Die Daten liegen in Home Assistant (.storage) und sind in dessen Backups enthalten. Das Panel ist nur für Administratoren sichtbar.",
+  /* Version aus dem Modul-Pfad (?v=<Version>-<Prüfsumme>), den die Integration setzt */
+  version: (() => { try { return (new URL(import.meta.url).searchParams.get("v") || "").split("-")[0]; } catch (e) { return ""; } })(),
 };
 const FIELDS = ["id", "raw", "sgtin", "key", "fmt", "name", "type", "room", "loc", "note", "fw", "created", "updated",
   "src_name", "src_room", "src_type", "ack_name", "ack_room", "missing"];
@@ -750,6 +792,48 @@ function init(host) {
     if (picked.size) { const l = devices.filter((d) => picked.has(d.id)).sort(byRoom); return { list: l, note: `Handauswahl: ${l.length} ${l.length === 1 ? "Gerät" : "Geräte"}` }; }
     const l = filtered(), f = filterText();
     return { list: l, note: f ? `Filter: ${f} (${l.length} ${l.length === 1 ? "Gerät" : "Geräte"})` : `Alle Geräte (${l.length})` };
+  }
+
+  /* ---------- Druckvorlagen: Bögen (Abschnitte), die jeweils auf einer neuen Seite beginnen ---------- */
+  const TPL_NAMES = { room: "Nach Räumen", func: "Nach Funktion", alpha: "Alphabetisch", sel: "Filter/Auswahl" };
+  const byName = (a, b) => (a.name || a.type || "").localeCompare(b.name || b.type || "", "de");
+  const initial = (d) => { const c = (d.name || d.type || "#").normalize("NFD").replace(/[\u0300-\u036f]/g, "").charAt(0).toUpperCase(); return /[A-Z]/.test(c) ? c : "#"; };
+  function sections(tpl) {
+    const map = new Map(), add = (k, d) => { if (!map.has(k)) map.set(k, []); map.get(k).push(d); };
+    if (tpl === "sel") { const s = sheetSet(); return [{ key: "sel", title: "Auswahl", note: s.note, list: s.list }]; }
+    for (const d of devices) {
+      if (tpl === "room") add(d.room || "(ohne Raum)", d);
+      else if (tpl === "func") add(typeCategories(d.type)[0] || "(ohne Kategorie)", d); // erste Kategorie in der Reihenfolge der Homepage
+      else add(initial(d), d);
+    }
+    let keys = [...map.keys()];
+    if (tpl === "func") keys.sort((a, b) => (CATEGORIES.indexOf(a) + 1 || 99) - (CATEGORIES.indexOf(b) + 1 || 99));
+    else keys.sort((a, b) => (a.startsWith("(") - b.startsWith("(")) || (a === "#") - (b === "#") || a.localeCompare(b, "de"));
+    return keys.map((k) => ({ key: k, title: tpl === "alpha" ? `Buchstabe ${k}` : k, note: `Bogen: ${tpl === "alpha" ? "Buchstabe " + k : k} · Vorlage: ${TPL_NAMES[tpl]}`,
+      list: map.get(k).sort(tpl === "room" ? byName : (a, b) => (a.room || "~").localeCompare(b.room || "~", "de") || byName(a, b)) }));
+  }
+  const lastChange = (l) => l.map((d) => d.updated || d.created || "").sort().pop() || "";
+  const fmtDate = (iso) => { const t = Date.parse(iso); return isNaN(t) ? "–" : new Date(t).toLocaleDateString("de-DE"); };
+  let pSel = null;
+  function fillPrint() {
+    const tpl = $("pTpl").value, kind = $("pKind").value, secs = sections(tpl);
+    if (!pSel || pSel.tpl !== tpl) pSel = { tpl, keys: new Set(secs.map((x) => x.key)) };
+    $("pSecs").innerHTML = secs.map((x) => {
+      const n = kind === "doc" ? x.list.length : x.list.filter((d) => stickerContent(d)).length;
+      const pages = kind === "doc" ? Math.max(1, Math.ceil(x.list.length / 6)) : stickerPages(x.list.filter((d) => stickerContent(d))).length;
+      return `<label class="chk"><input type="checkbox" data-k="${esc(x.key)}"${pSel.keys.has(x.key) ? " checked" : ""}><span>${esc(x.title)}<br><small class="code">${n} ${n === 1 ? "Gerät" : "Geräte"} · ${pages} ${pages === 1 ? "Seite" : "Seiten"} · zuletzt geändert ${fmtDate(lastChange(x.list))}</small></span></label>`;
+    }).join("") || "<small>Keine Geräte</small>";
+  }
+  function printSet() {
+    const tpl = $("pTpl").value, kind = $("pKind").value, when = today();
+    const secs = sections(tpl).filter((x) => pSel && pSel.keys.has(x.key));
+    const pages = [];
+    for (const x of secs) {
+      if (kind === "doc") pages.push(...docPages(x.list, when, x.note, x.title));
+      else { const l = x.list.filter((d) => stickerContent(d)); if (l.length) pages.push(...stickerPages(l, x.title, when)); }
+    }
+    const name = (kind === "doc" ? "dokumentationsbogen" : "qr-code-aufkleber") + "-" + ({ room: "raeume", func: "funktion", alpha: "alphabetisch", sel: "auswahl" }[tpl]) + (secs.length === 1 && tpl !== "sel" ? "-" + secs[0].key.toLowerCase().replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") : "") + ".pdf";
+    return { pages, name };
   }
 
   function render() {
@@ -967,9 +1051,30 @@ function init(host) {
     } catch (e) { alert("Übernahme fehlgeschlagen: " + errText(e)); }
     $("mHa").disabled = false;
   };
-  $("mDoc").onclick = () => { $("dMenu").close(); const s = sheetSet(); outputPdf(docPages(s.list, today(), s.note), "dokumentationsbogen.pdf"); };
-  $("mDocPrint").onclick = () => { $("dMenu").close(); const s = sheetSet(); printPages(docPages(s.list, today(), s.note)); };
-  $("mSheet").onclick = () => { $("dMenu").close(); outputPdf(stickerPages(sheetSet().list.filter((d) => stickerContent(d))), "qr-code-aufkleber.pdf"); };
+  $("mPrint").onclick = () => { $("dMenu").close(); fillPrint(); $("dPrint").showModal(); };
+  $("pTpl").onchange = fillPrint; $("pKind").onchange = fillPrint;
+  $("pSecs").addEventListener("change", (e) => { const c = e.target.closest("input[data-k]"); if (!c) return; c.checked ? pSel.keys.add(c.dataset.k) : pSel.keys.delete(c.dataset.k); });
+  $("pAll").onclick = () => { pSel.keys = new Set(sections($("pTpl").value).map((x) => x.key)); fillPrint(); };
+  $("pNone").onclick = () => { pSel.keys.clear(); fillPrint(); };
+  $("pPdf").onclick = () => { const r = printSet(); if (!r.pages.length) { toast("Keine Bögen ausgewählt"); return; } outputPdf(r.pages, r.name); };
+  $("pPrint").onclick = () => { const r = printSet(); if (!r.pages.length) { toast("Keine Bögen ausgewählt"); return; } printPages(r.pages); };
+  $("pClose").onclick = () => $("dPrint").close();
+  $("mHelp").onclick = () => { $("dMenu").close(); $("dHelp").showModal(); };
+  $("hClose").onclick = () => $("dHelp").close();
+  root.querySelectorAll(".vno").forEach((e) => (e.textContent = cfg.version || "unbekannt"));
+  /* Passwort ändern und Abmelden gibt es nur, wenn die Umgebung es anbietet (HCU-Plugin) */
+  if (cfg.changePassword) {
+    $("mPw").hidden = false; $("mLogout").hidden = false;
+    $("mPw").onclick = () => { $("dMenu").close(); $("pwOld").value = $("pwNew").value = $("pwNew2").value = ""; $("pwMsg").innerHTML = ""; $("dPw").showModal(); };
+    $("pwCancel").onclick = () => $("dPw").close();
+    $("fPw").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if ($("pwNew").value !== $("pwNew2").value) { $("pwMsg").innerHTML = '<div class="msg warn">Die neuen Passwörter stimmen nicht überein.</div>'; return; }
+      try { await cfg.changePassword($("pwOld").value, $("pwNew").value); $("dPw").close(); toast("Passwort geändert"); }
+      catch (err) { $("pwMsg").innerHTML = `<div class="msg warn">${esc(errText(err))}</div>`; }
+    });
+    $("mLogout").onclick = () => { $("dMenu").close(); if (cfg.logout) cfg.logout(); };
+  }
   $("mCsv").onclick = () => { exportCsv(); $("dMenu").close(); };
   $("mJson").onclick = () => { exportJson(); $("dMenu").close(); };
   $("mImport").onclick = () => $("fileImport").click();
@@ -997,7 +1102,7 @@ class HmipGeraetePanel extends HTMLElement {
   constructor() { super(); this.attachShadow({ mode: "open" }); this._ready = false; this._narrow = false; }
   set hass(h) {
     this._hass = h;
-    if (!this._ready) { this._ready = true; const c = this.cfg || DEFAULT_CFG; this.shadowRoot.innerHTML = TEMPLATE.replaceAll("{{SRC}}", c.source).replaceAll("{{STORAGE_NOTE}}", c.storageNote); this._applyNarrow(); init(this); }
+    if (!this._ready) { this._ready = true; const c = this.cfg || DEFAULT_CFG; this.shadowRoot.innerHTML = TEMPLATE.replaceAll("{{SRC}}", c.source).replaceAll("{{STORAGE_NOTE}}", c.storageNote).replaceAll("{{HELP_EXTRA}}", c.helpExtra || ""); this._applyNarrow(); init(this); }
   }
   get hass() { return this._hass; }
   set narrow(v) { this._narrow = !!v; this._applyNarrow(); }

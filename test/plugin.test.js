@@ -68,3 +68,15 @@ test("Abgleich: Änderungen und entfernte Geräte werden markiert", () => {
   assert.strictEqual(s.importHcu(items.filter((x) => !x.sgtin.endsWith("A2"))).removed, 0);
   assert.strictEqual(pending(s.list().find((x) => x.id === a1.id)), false);
 });
+
+test("Passwort ändern und zurücksetzen", () => {
+  const dir = tmp(), a = new Auth(dir);
+  a.setPassword("geheim123");
+  const t = a.login("geheim123", "1.1.1.1");
+  assert.throws(() => a.changePassword("falsch123", "neuespw12", "2.2.2.2"), /Passwort falsch/);
+  const t2 = a.changePassword("geheim123", "neuespw12", "1.1.1.1");
+  assert.ok(!a.check(t) && a.check(t2));
+  assert.ok(new Auth(dir).login("neuespw12", "3.3.3.3"));
+  a.reset();
+  assert.ok(!a.isSet && !a.check(t2) && !new Auth(dir).isSet);
+});

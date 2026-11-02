@@ -21,15 +21,17 @@ hmip-geraete-panel{display:block;height:100vh}
   <input id="pw" type="password" autocomplete="current-password" placeholder="Passwort">
   <input id="pw2" type="password" autocomplete="new-password" placeholder="Passwort wiederholen" hidden>
   <button id="go">Weiter</button><div id="err"></div>
+  <p id="forgot" style="margin-top:12px;font-size:13px" hidden>Passwort vergessen? In HCUweb beim Plugin „HmIP Geräteverwaltung“ die Einstellungen öffnen und „Passwort der Weboberfläche zurücksetzen“ einschalten.</p>
+  <p id="lver" style="margin:8px 0 0;font-size:12px;text-align:center"></p>
 </div>
 <script type="module">
 import "./panel.js";
 const $ = (id) => document.getElementById(id);
-let token = ""; try { token = sessionStorage.getItem("hmipTok") || ""; } catch (e) { /* kein Speicher */ }
+let token = "", appVersion = ""; try { token = sessionStorage.getItem("hmipTok") || ""; } catch (e) { /* kein Speicher */ }
 async function call(method, url, body) {
   const r = await fetch(url, { method, headers: { "Content-Type": "application/json", "X-Token": token }, body: body === undefined ? undefined : JSON.stringify(body) });
   let j = {}; try { j = await r.json(); } catch (e) { /* leer */ }
-  if (!r.ok) { if (r.status === 401 && url !== "/api/login") { try { sessionStorage.removeItem("hmipTok"); } catch (e) {} if (token) { location.reload(); } } throw { code: j.code || r.status, message: j.message || ("Fehler " + r.status) }; }
+  if (!r.ok) { if (r.status === 401 && url !== "/api/login" && url !== "/api/password") { try { sessionStorage.removeItem("hmipTok"); } catch (e) {} if (token) { location.reload(); } } throw { code: j.code || r.status, message: j.message || ("Fehler " + r.status) }; }
   return j;
 }
 /* Das Panel spricht dieselben Befehle wie in Home Assistant; hier werden sie auf die HTTP-API abgebildet. */
@@ -45,17 +47,21 @@ const hass = { connection: { sendMessagePromise: async (m) => {
 function showPanel() {
   $("login").hidden = true;
   const el = document.createElement("hmip-geraete-panel");
-  el.cfg = { source: "der HCU",
-    storageNote: "Die Daten liegen im Plugin-Ordner der HCU (/data) und bleiben bei Updates erhalten. Der Zugriff ist durch ein Passwort geschützt." };
+  el.cfg = { source: "der HCU", version: appVersion,
+    storageNote: "Die Daten liegen im Plugin-Ordner der HCU (/data) und bleiben bei Updates erhalten. Der Zugriff ist durch ein Passwort geschützt.",
+    helpExtra: "<b>Passwort</b><p>Ändern über Menü → „Passwort ändern“. Vergessen? In HCUweb beim Plugin die Einstellungen öffnen, „Passwort der Weboberfläche zurücksetzen“ einschalten und speichern; danach hier ein neues Passwort festlegen. Die Gerätedaten bleiben erhalten.</p>",
+    changePassword: async (oldPw, newPw) => { const r = await call("POST", "/api/password", { old: oldPw, password: newPw }); token = r.token; try { sessionStorage.setItem("hmipTok", token); } catch (e) {} },
+    logout: async () => { try { await call("POST", "/api/logout", {}); } catch (e) {} try { sessionStorage.removeItem("hmipTok"); } catch (e) {} location.reload(); } };
   document.body.appendChild(el); el.hass = hass;
 }
 async function main() {
-  if (token) { try { await call("GET", "/api/list"); return showPanel(); } catch (e) { token = ""; } }
   const st = await call("GET", "/api/status"), setup = !st.passwordSet;
+  appVersion = st.version || "";
+  if (token && !setup) { try { await call("GET", "/api/list"); return showPanel(); } catch (e) { token = ""; } }
   $("login").hidden = false;
   $("lt").textContent = setup ? "Passwort festlegen" : "Anmelden";
   $("lp").textContent = setup ? "Die Geräteschlüssel sind vertraulich. Lege ein Passwort (mindestens 8 Zeichen) für diese Seite fest." : "HmIP Geräteverwaltung";
-  $("pw2").hidden = !setup;
+  $("pw2").hidden = !setup; $("forgot").hidden = setup; $("lver").textContent = appVersion ? "Version " + appVersion : "";
   const go = async () => {
     $("err").textContent = "";
     try {

@@ -14,6 +14,7 @@ const [pluginId = "de.ollo18.hmip.geraeteverwaltung", host = "host.containers.in
 const DATA_DIR = process.env.DATA_DIR || "/data";
 const PORT = Number(process.env.WEB_PORT || 8443);
 const WSS_URL = process.env.HCU_WSS || `wss://${host}:9001`;
+const VERSION = require("./package.json").version;
 const log = (...a) => console.log(new Date().toISOString(), ...a);
 
 let ws = null, ready = false, webUrl = "", hcuIp = "";
@@ -30,7 +31,14 @@ function connect() {
     /* IP-Adresse der HCU (Doku 6.4.15) – für die Adresse der Weboberfläche, wie beim WRC6-Plugin */
     if (m.type === "SYSTEM_INFO_RESPONSE") { const ip = m.body && m.body.ipAddress; if (typeof ip === "string" && ip && ip !== hcuIp) { hcuIp = ip; log("IP-Adresse der HCU:", ip); } return; }
     if (m.type === "CONFIG_TEMPLATE_REQUEST") return send(m.id, "CONFIG_TEMPLATE_RESPONSE", configTemplate((m.body && m.body.languageCode) || "de"));
-    if (m.type === "CONFIG_UPDATE_REQUEST") return send(m.id, "CONFIG_UPDATE_RESPONSE", { status: "APPLIED" });
+    if (m.type === "CONFIG_UPDATE_REQUEST") {
+      const props = (m.body && m.body.properties) || {}, de = !(m.body && m.body.languageCode === "en");
+      if (props.resetPassword === true || props.resetPassword === "true") {
+        auth.reset(); log("Passwort der Weboberfläche über HCUweb zurückgesetzt");
+        return send(m.id, "CONFIG_UPDATE_RESPONSE", { status: "APPLIED", message: de ? "Passwort zurückgesetzt. Beim nächsten Aufruf der Weboberfläche ein neues Passwort festlegen." : "Password reset. Set a new password on the next visit of the web interface." });
+      }
+      return send(m.id, "CONFIG_UPDATE_RESPONSE", { status: "APPLIED" });
+    }
     if (m.type === "HMIP_SYSTEM_EVENT") return onSystemEvent(m.body);
     if (m.type === "HMIP_SYSTEM_RESPONSE" && pending.has(m.id)) { const p = pending.get(m.id); pending.delete(m.id); clearTimeout(p.t); p.res(m.body); }
   });
@@ -44,19 +52,25 @@ const currentUrl = () => process.env.WEB_PUBLIC_URL || (hcuIp ? `https://${hcuIp
 const TEXTS = {
   de: { group: "Weboberfläche", groupDesc: "Geräte, QR-Code-Aufkleber und Dokumentationsbogen verwaltest du in der eigenen Weboberfläche des Plugins. Beim ersten Aufruf die Zertifikatswarnung bestätigen.",
     open: "Weboberfläche öffnen", openDesc: "Öffnet die Weboberfläche in einem neuen Fenster.", url: "Adresse der Weboberfläche", urlDesc: "Zum Kopieren in die Adresszeile des Browsers, z. B. für ein Lesezeichen.",
-    qr: "Weboberfläche per QR-Code", qrDesc: "Mit der Handy-Kamera scannen (Handy im selben WLAN)." },
+    qr: "Weboberfläche per QR-Code", qrDesc: "Mit der Handy-Kamera scannen (Handy im selben WLAN).",
+    sec: "Zugang", reset: "Passwort der Weboberfläche zurücksetzen", resetDesc: "Einschalten und speichern, wenn das Passwort vergessen wurde. Danach beim nächsten Aufruf ein neues Passwort festlegen. Die Gerätedaten bleiben erhalten.",
+    ver: "Version" },
   en: { group: "Web interface", groupDesc: "Devices, QR code stickers and documentation sheets are managed in the plugin's own web interface. Accept the certificate warning on first visit.",
     open: "Open web interface", openDesc: "Opens the web interface in a new window.", url: "Web interface address", urlDesc: "To copy into the browser's address bar, e.g. for a bookmark.",
-    qr: "Web interface QR code", qrDesc: "Scan with your phone camera (phone on the same network)." },
+    qr: "Web interface QR code", qrDesc: "Scan with your phone camera (phone on the same network).",
+    sec: "Access", reset: "Reset web interface password", resetDesc: "Switch on and save if the password was forgotten. Then set a new password on the next visit. Device data is kept.",
+    ver: "Version" },
 };
 function configTemplate(lang) {
   const t = TEXTS[lang] || TEXTS.de, url = currentUrl();
   return {
-    groups: { web: { friendlyName: t.group, description: t.groupDesc, order: 1 } },
+    groups: { web: { friendlyName: t.group, description: t.groupDesc, order: 1 }, sec: { friendlyName: t.sec, order: 2 } },
     properties: {
       webLink: { dataType: "WEBLINK", friendlyName: t.open, description: t.openDesc, currentValue: url, defaultValue: url, groupId: "web", order: 1 },
       webUrl: { dataType: "READONLY", friendlyName: t.url, description: t.urlDesc, currentValue: url, groupId: "web", order: 2 },
       webQr: { dataType: "QRCODE", friendlyName: t.qr, description: t.qrDesc, currentValue: url, groupId: "web", order: 3 },
+      version: { dataType: "READONLY", friendlyName: t.ver, currentValue: VERSION, groupId: "web", order: 4 },
+      resetPassword: { dataType: "BOOLEAN", friendlyName: t.reset, description: t.resetDesc, currentValue: "false", defaultValue: "false", groupId: "sec", order: 1 },
     },
   };
 }
@@ -74,7 +88,7 @@ function systemRequest(p, body = {}) {
 }
 /* Automatische Übernahme: bei neu angelernten, entfernten oder umbenannten Geräten und bei Raumänderungen
    (Gruppen vom Typ META) den Systemzustand holen und abgleichen. Zustandsänderungen (Fenster auf/zu usw.) lösen nichts aus. */
-let syncTimer = null, store = null;
+let syncTimer = null, store = null, auth = null;
 function scheduleSync(reason) {
   clearTimeout(syncTimer);
   syncTimer = setTimeout(async () => {
@@ -102,10 +116,10 @@ async function getHcuState() {
 }
 
 (async () => {
-  store = new DeviceStore(DATA_DIR); const auth = new Auth(DATA_DIR);
+  store = new DeviceStore(DATA_DIR); auth = new Auth(DATA_DIR);
   let last4 = ""; try { last4 = fs.readFileSync("/SGTIN", "utf8").trim().slice(-4); } catch (e) { /* außerhalb der HCU */ }
   const hosts = ["localhost"]; if (last4) hosts.unshift(`hcu1-${last4}.local`);
-  const start = createServer({ store, auth, www: path.join(__dirname, "www"), getHcuState, dir: DATA_DIR, hosts });
+  const start = createServer({ store, auth, www: path.join(__dirname, "www"), getHcuState, dir: DATA_DIR, hosts, version: VERSION });
   await start(PORT);
   webUrl = `https://${hosts[0]}:${PORT}`;
   log(`Weboberfläche: ${webUrl}`);
