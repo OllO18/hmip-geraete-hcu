@@ -52,6 +52,59 @@ export function stickerContent(d) {
   return null;
 }
 
+/* ---------- Gerätebezeichnungen ----------
+   Deutsche Produktbezeichnungen zu den Typ-Kürzeln. Quellen: Download-Bereich und Datenblätter von eQ-3/Homematic IP;
+   wo dort nichts zu finden war, die Standard-Gerätenamen, die die HCU beim Anlernen vergibt. Nicht verifizierte Kürzel
+   fehlen absichtlich und werden als Kürzel angezeigt. Varianten mit Zusatz nach Leerzeichen (z. B. "HmIP-PS-2 9YM") zählen zum Grundtyp. */
+const TYPE_NAMES = {
+  "HmIP-HCU1": "Home Control Unit",
+  "HmIP-SWDO-I": "Fenster- und Türkontakt – verdeckter Einbau",
+  "HmIP-SWDO-2": "Fenster- und Türkontakt – optisch",
+  "HmIP-SWDO-A": "Fenster- und Türkontakt – optisch",
+  "HmIP-SWDO-PL-2": "Fenster- und Türkontakt – optisch, plus",
+  "HmIP-SWDM": "Fenster- und Türkontakt mit Magnet",
+  "HmIP-SWDM-2": "Fenster- und Türkontakt mit Magnet",
+  "HmIP-WTH-1": "Wandthermostat mit Luftfeuchtigkeitssensor",
+  "HmIP-BWTH": "Wandthermostat mit Schaltausgang – für Markenschalter",
+  "HmIP-BSL": "Schaltaktor für Markenschalter – mit Signalleuchte",
+  "HmIP-BSM": "Schalt-Mess-Aktor für Markenschalter",
+  "HmIP-FSM": "Schalt-Mess-Aktor – Unterputz",
+  "HmIP-BBL-2": "Jalousieaktor für Markenschalter",
+  "HmIP-SWSD-2": "Rauchwarnmelder mit Q-Label",
+  "HmIP-eTRV-2": "Heizkörperthermostat",
+  "HmIP-eTRV-3": "Heizkörperthermostat – pure",
+  "HmIP-eTRV-B": "Heizkörperthermostat – basic",
+  "HmIP-eTRV-E": "Heizkörperthermostat – Evo",
+  "HmIP-FALMOT-C12": "Fußbodenheizungscontroller – 12 Kanäle, motorisch",
+  "HmIP-WHS2": "Schaltaktor für Heizungsanlagen – 2-fach",
+  "HmIP-SMI": "Bewegungsmelder mit Dämmerungssensor – innen",
+  "HmIP-SMO-2": "Bewegungsmelder mit Dämmerungssensor – außen",
+  "HmIP-SMO230": "Bewegungsmelder mit Schaltaktor – außen",
+  "HmIP-SMO230-A": "Bewegungsmelder mit Schaltaktor – außen",
+  "HmIP-WRC6": "Wandtaster – 6-fach",
+  "HmIP-WGC": "Garagentortaster",
+  "HmIP-WKP": "Keypad",
+  "HmIP-DLP-A": "Türschlossantrieb – pro",
+  "HmIP-PS-2": "Schaltsteckdose",
+  "HmIP-PSMCO": "Schalt-Mess-Kabel – außen",
+  "HmIP-STHD": "Temperatur- und Luftfeuchtigkeitssensor mit Display – innen",
+  "HmIP-ASIR-O": "Alarmsirene – außen",
+  "HmIP-SWD": "Wassersensor",
+  "HmIP-FCI1": "Kontakt-Schnittstelle Unterputz – 1-fach",
+  "HmIP-FCI6": "Kontakt-Schnittstelle Unterputz – 6-fach",
+  "HmIP-ESI": "Schnittstelle für Energiesensoren",
+  "ELV-SH-SB8": "ELV Smart Home Status-Board",
+  "ELV-SH-CTV": "ELV Smart Home Neigungs- und Erschütterungssensor Kompakt",
+};
+const TYPE_NAMES_UC = Object.fromEntries(Object.entries(TYPE_NAMES).map(([k, v]) => [k.toUpperCase(), v]));
+export function typeName(code) {
+  const c = String(code || "").trim().toUpperCase();
+  return TYPE_NAMES_UC[c] || TYPE_NAMES_UC[c.split(/\s+/)[0]] || "";
+}
+/* Anzeige: "Bezeichnung (Kürzel)" bzw. nur das Kürzel */
+export const typeLabel = (code) => (typeName(code) ? `${typeName(code)} (${code})` : String(code || ""));
+const typeKey = (code) => typeName(code) || String(code || "");
+
 /* ---------- QR-Code-Aufkleber (SVG) ---------- */
 export function qrMatrix(text) {
   const mode = /^[0-9A-Z $%*+\-./:]+$/.test(text) ? "Alphanumeric" : "Byte";
@@ -183,7 +236,7 @@ ${noteLines.map((l, k) => `<text x="144" y="${127 + k * 28}" font-size="12.5" fi
       const put = (text, base) => wrap(text, 22, 4).forEach((l, k) => { s += `<text x="${x + 10}" y="${y + base + 19 + k * 17}" font-size="13" fill="#0E324C">${xml(l)}</text>`; });
       put(d.name, 21);
       put([d.room, d.loc].filter(Boolean).join(" · "), 117);
-      put([d.type, d.note].filter(Boolean).join(" · "), 215);
+      put([typeLabel(d.type), d.note].filter(Boolean).join(" · "), 215);
       if (stickerContent(d)) {
         const p0 = stickerParts(d); const w = Math.min(160, (250 * 500) / p0.h);
         s += nestSticker(d, x + 164 + (171 - w) / 2, y + 30, w).svg;
@@ -314,6 +367,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--cyan);outline-of
 .chks{display:flex;flex-direction:column;max-height:28vh;overflow:auto;border:1px solid var(--line);border-radius:14px;padding:4px 10px;background:var(--bg)}
 .chk{display:flex;align-items:center;gap:10px;padding:7px 2px;font-size:15px;cursor:pointer}
 .chk input{width:20px;height:20px;flex:none;accent-color:var(--cyan);margin:0;padding:0}
+.chk small.code{color:var(--mut);font-size:12px}
 .chk .n{margin-left:auto;color:var(--mut);font-size:13px}
 .cb{width:26px;height:26px;border-radius:8px;border:2px solid var(--cyan);flex:none;display:flex;align-items:center;justify-content:center;background:#fff}
 .cb svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;display:none}
@@ -603,25 +657,28 @@ function init(host) {
   function refreshLists() {
     const rooms = [...new Set(devices.map((d) => d.room).filter(Boolean))].sort((a, b) => a.localeCompare(b, "de"));
     const types = [...new Set(devices.map((d) => d.type).filter(Boolean))].sort();
+    const tkeys = new Set(devices.map((d) => d.type).filter(Boolean).map(typeKey));
     $("rooms").innerHTML = rooms.map((r) => `<option value="${esc(r)}">`).join("");
     $("types").innerHTML = types.map((r) => `<option value="${esc(r)}">`).join("");
     for (const r of [...fRooms]) if (r !== NOROOM && !rooms.includes(r)) fRooms.delete(r);
-    for (const t of [...fTypes]) if (!types.includes(t)) fTypes.delete(t);
+    for (const t of [...fTypes]) if (!tkeys.has(t)) fTypes.delete(t);
     for (const id of [...picked]) if (!devices.some((d) => d.id === id)) picked.delete(id);
   }
   function fillFilterDialog() {
     const cnt = (f) => devices.filter(f).length;
     const rooms = [...new Set(devices.map((d) => d.room).filter(Boolean))].sort((a, b) => a.localeCompare(b, "de"));
     if (devices.some((d) => !d.room)) rooms.push(NOROOM);
-    const types = [...new Set(devices.map((d) => d.type).filter(Boolean))].sort();
-    const box = (set, v, label, n) => `<label class="chk"><input type="checkbox" data-v="${esc(v)}"${set.has(v) ? " checked" : ""}>${esc(label)}<span class="n">${n}</span></label>`;
+    const groups = new Map();
+    for (const d of devices) if (d.type) { const k = typeKey(d.type); if (!groups.has(k)) groups.set(k, new Set()); groups.get(k).add(d.type.split(/\s+/)[0]); }
+    const types = [...groups.keys()].sort((a, b) => a.localeCompare(b, "de"));
+    const box = (set, v, label, n, sub) => `<label class="chk"><input type="checkbox" data-v="${esc(v)}"${set.has(v) ? " checked" : ""}><span>${esc(label)}${sub ? `<br><small class="code">${esc(sub)}</small>` : ""}</span><span class="n">${n}</span></label>`;
     $("fRooms").innerHTML = rooms.map((r) => box(fRooms, r, r === NOROOM ? "(ohne Raum)" : r, cnt((d) => roomOf(d) === r))).join("") || "<small>Keine Räume</small>";
-    $("fTypes").innerHTML = types.map((t) => box(fTypes, t, t, cnt((d) => d.type === t))).join("") || "<small>Keine Typen</small>";
+    $("fTypes").innerHTML = types.map((t) => box(fTypes, t, t, cnt((d) => d.type && typeKey(d.type) === t), t === [...groups.get(t)][0] && groups.get(t).size === 1 ? "" : [...groups.get(t)].sort().join(", "))).join("") || "<small>Keine Typen</small>";
   }
   function filtered() {
     const q = $("q").value.trim().toLowerCase(), fs = $("fStatus").value;
-    return devices.filter((d) => (!fRooms.size || fRooms.has(roomOf(d))) && (!fTypes.size || fTypes.has(d.type)) &&
-      (!fs || (fs === "done") === hasCode(d)) && (!q || [d.name, d.type, d.room, d.loc, d.sgtin, d.note].join(" ").toLowerCase().includes(q)))
+    return devices.filter((d) => (!fRooms.size || fRooms.has(roomOf(d))) && (!fTypes.size || (d.type && fTypes.has(typeKey(d.type)))) &&
+      (!fs || (fs === "done") === hasCode(d)) && (!q || [d.name, d.type, typeName(d.type), d.room, d.loc, d.sgtin, d.note].join(" ").toLowerCase().includes(q)))
       .sort(byRoom);
   }
   const byRoom = (a, b) => (!a.room - !b.room) || (a.room || "").localeCompare(b.room || "", "de") || (a.name || "").localeCompare(b.name || "", "de");
@@ -629,7 +686,7 @@ function init(host) {
   function filterText() {
     const p = [], q = $("q").value.trim(), fs = $("fStatus").value;
     if (fRooms.size) p.push((fRooms.size > 1 ? "Räume: " : "Raum: ") + [...fRooms].map((r) => (r === NOROOM ? "ohne Raum" : r)).sort((a, b) => a.localeCompare(b, "de")).join(", "));
-    if (fTypes.size) p.push((fTypes.size > 1 ? "Typen: " : "Typ: ") + [...fTypes].sort().join(", "));
+    if (fTypes.size) p.push((fTypes.size > 1 ? "Gerätetypen: " : "Gerätetyp: ") + [...fTypes].sort((a, b) => a.localeCompare(b, "de")).join(", "));
     if (fs) p.push(fs === "done" ? "QR-Code-Aufkleber erfasst" : "QR-Code-Aufkleber fehlt");
     if (q) p.push(`Suche „${q}“`);
     return p.join(" · ");
@@ -660,7 +717,7 @@ function init(host) {
         ${selMode ? '<div class="cb"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>' : ""}<div class="ico ${ok ? "ok" : "miss"}">QR${ok ? '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>' : ""}</div>
         <div class="main">
           <div class="t">${esc(d.name || d.type || "(ohne Name)")}</div>
-          <div class="s">${esc(d.type)}${d.type && d.sgtin ? " · " : ""}${d.sgtin ? "SGTIN …" + esc(last4(d.sgtin)) : ""}${d.fw ? " · FW " + esc(d.fw) : ""}</div>
+          <div class="s">${esc(typeLabel(d.type))}${d.type && d.sgtin ? " · " : ""}${d.sgtin ? "SGTIN …" + esc(last4(d.sgtin)) : ""}${d.fw ? " · FW " + esc(d.fw) : ""}</div>
           <div><span class="pill ${ok ? "ok" : "miss"}">${ok ? "QR-Code-Aufkleber erfasst" : "QR-Code-Aufkleber fehlt"}</span>${d.room ? `<span class="pill room">${esc(d.room)}</span>` : ""}${d.loc ? `<span class="s">${esc(d.loc)}</span>` : ""}</div>
         </div><span class="chev">›</span></div>`;
     }).join("") :
