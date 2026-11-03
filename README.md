@@ -13,7 +13,7 @@ spätestens beim Neuanlernen oder Offline-Anlernen wieder braucht:
   wird gespeichert.
 - **Dokumentationsbogen drucken**: Nachbau des Homematic-IP-Vordrucks mit
   Gerätename, Raum/Montageort, Sonstiges und einem neu erzeugten
-  QR-Code-Aufkleber – aufgeteilt nach Räumen, nach Funktion oder alphabetisch,
+  QR-Code-Aufkleber – aufgeteilt nach Räumen, nach Geräteart oder alphabetisch,
   jeder Bogen einzeln austauschbar
 - **Änderungen im Blick**: neu angelernte Geräte kommen von selbst dazu,
   umbenannte, verschobene und entfernte Geräte werden markiert
@@ -60,8 +60,8 @@ genauso funktioniert wie am PC.
     genügen laut Handbuch auch die letzten vier Ziffern der SGTIN) und ist
     entsprechend gekennzeichnet. Den Key selbst gibt die HCU nicht heraus.
 - **Ausdrucke** als PDF (auf dem Handy teilen/speichern) oder direkt am PC:
-  - Vorlagen: **nach Räumen**, **nach Funktion** (Kategorien wie auf
-    homematic-ip.com; ein Gerät erscheint in allen seinen Kategorien),
+  - Vorlagen: **nach Räumen**, **nach Geräteart** (z. B. Heizkörperthermostate,
+    Fenster- & Türkontakte, Schlösser; jedes Gerät genau einmal),
     **alphabetisch** oder nach **aktuellem Filter**
   - Inhalt: Dokumentationsbogen (6 Geräte je A4-Seite) oder nur
     QR-Code-Aufkleber
@@ -73,10 +73,10 @@ genauso funktioniert wie am PC.
   einzeln oder mehrere auf einmal in Felder setzen, Felder frei lassen,
   einfügen, entfernen und verschieben (am PC auch per Ziehen). Gedruckt wird
   Seite für Seite, immer mit dem aktuellen Stand der Geräte.
-- **Filter**: mehrere Räume, Kategorien und Gerätetypen gleichzeitig,
+- **Filter**: mehrere Räume und Gerätearten gleichzeitig,
   Aufkleber erfasst/fehlt, „in der HCU geändert“, „nicht mehr in der HCU“,
   Suche
-- **Liste gliedern** wahlweise nach Raum, Funktion, Gerätetyp oder
+- **Liste gliedern** wahlweise nach Raum, Geräteart oder
   alphabetisch ohne Gruppen; Gruppen lassen sich auf- und zuklappen
 - **Änderungen übernehmen**: Wurde ein Gerät in der HCU umbenannt oder in
   einen anderen Raum verschoben, zeigt das Plugin den neuen Wert an –
@@ -157,10 +157,12 @@ Update empfiehlt sich trotzdem ein **Backup (JSON)** unter **Mehr**.
 
 ## Bekannte Grenzen
 
-- **Gerätebezeichnungen und Kategorien** sind eine eingebaute Liste
-  (Quellen: Download-Bereich und Produktfilter von homematic-ip.com, Stand
-  02.11.2026). Unbekannte Gerätetypen werden mit ihrem Kürzel und unter
-  „(ohne Kategorie)“ angezeigt. Ergänzungen gern per [Issue](../../issues).
+- **Gerätebezeichnungen** sind eine eingebaute Liste mit rund 250 Modellen
+  (Quellen: Gerätedatenbank der CCU-Software OCCU von eQ-3, Stand 16.09.2026,
+  und homematic-ip.com). Unbekannte Modelle werden mit ihrem Kürzel angezeigt.
+- **Gerätearten** werden über das Modellkürzel zugeordnet (eigene Einteilung
+  nach Hauptfunktion). Was nicht passt, landet unter „Schnittstellen &
+  Sonstiges“. Ergänzungen gern per [Issue](../../issues).
 - **Online-Code**: Dass die Homematic-IP-App einen QR-Code im Format
   `EQ01SG<SGTIN>` (ohne Key) beim Anlernen erkennt, ist nicht dokumentiert,
   sondern ausprobiert. Die SGTIN allein lehnt die App ab.

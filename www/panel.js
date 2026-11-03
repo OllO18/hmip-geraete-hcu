@@ -96,48 +96,253 @@ const TYPE_NAMES = {
   "HmIP-ESI": "Schnittstelle für Energiesensoren",
   "ELV-SH-SB8": "ELV Smart Home Status-Board",
   "ELV-SH-CTV": "ELV Smart Home Neigungs- und Erschütterungssensor Kompakt",
+  "ELV-SH-BM-S": "ELV Smart Home Sensor-Base",
+  "ELV-SH-BS2": "Wandtaster für Markenschalter – 2-fach",
+  "ELV-SH-CAP": "ELV Smart Home Luftdrucksensor Kompakt",
+  "ELV-SH-CRC": "ELV Smart Home Taster Kompakt",
+  "ELV-SH-CTH": "ELV Smart Home Temperatur- und Luftfeuchtigkeitssensor Kompakt",
+  "ELV-SH-KRC": "ELV Smart Home Schlüsselbundfernbedienung",
+  "ELV-SH-KRCO": "ELV Smart Home Taster Kompakt – Outdoor",
+  "ELV-SH-PSMCI": "Schalten/Messen",
+  "ELV-SH-PTI2": "ELV Smart Home Temperatursensor mit externen Fühlern – 2-fach",
+  "ELV-SH-SMS2": "ELV Smart Home Oberflächen-montierter Schalt-Aktor 2-fach",
+  "ELV-SH-SMSI": "ELV Smart Home Bodenfeuchtesensor",
+  "ELV-SH-SPS25": "ELV Smart Home Spannungsversorgung, schaltbar",
+  "ELV-SH-SW1-BAT": "Schaltplatine für Batteriebetrieb",
+  "ELV-SH-TACO": "ELV Smart Home Temperatur- und Beschleunigungssensor Außen",
+  "ELV-SH-WSC": "Servosteuerung",
+  "ELV-SH-WSM": "ELV Smart Home Bewässerungsaktor",
+  "ELV-SH-WUA": "Universalaktor – 0-10 V",
+  "HmIP-ASIR": "Alarmsirene",
+  "HmIP-ASIR-2": "Alarmsirene",
+  "HmIP-ASIR-B1": "Alarmsirene",
+  "HmIP-BBL": "Jalousieaktor für Markenschalter",
+  "HmIP-BBL-I": "Jalousieaktor für Markenschalter",
+  "HmIP-BDT": "Dimmaktor für Markenschalter, Unterputzmontage",
+  "HmIP-BDT-I": "Dimmaktor für Markenschalter, Unterputzmontage",
+  "HmIP-BRC2": "Wandtaster für Markenschalter – 2-fach",
+  "HmIP-BRC2-2": "Wandtaster für Markenschalter – 2-fach",
+  "HmIP-BROLL": "Rollladenaktor für Markenschalter",
+  "HmIP-BROLL-2": "Rollladenaktor für Markenschalter",
+  "HmIP-BS2": "Wandtaster für Markenschalter – 2-fach",
+  "HmIP-BSM-I": "Schaltaktor mit Leistungsmessung",
+  "HmIP-BWTH-A": "Wandthermostat",
+  "HmIP-BWTH24": "Wandthermostat",
+  "HmIP-CCU3": "Zentrale CCU3",
+  "HmIP-DBB": "Türklingeltaster",
+  "HmIP-DLD": "Türschlossantrieb",
+  "HmIP-DLD-A": "Türschlossantrieb",
+  "HmIP-DLD-S": "Türschlossantrieb",
+  "HmIP-DLS": "Türschlosssensor",
+  "HmIP-DRBLI4": "Jalousie- und Rollladenaktor für Hutschienenmontage – 4-fach",
+  "HmIP-DRDI3": "Dimmaktor für Hutschienenmontage – 3-fach",
+  "HmIP-DRG-DALI": "DALI Gateway",
+  "HmIP-DRSI1": "Schaltaktor für Hutschienenmontage – 1-fach",
+  "HmIP-DRSI4": "Schaltaktor für Hutschienenmontage – 4-fach",
+  "HmIP-DSD-PCB": "Klingelsignalsensor",
+  "HmIP-ESI-IND": "Energiezählerschnittstelle",
+  "HmIP-eTRV": "Heizkörperthermostat",
+  "HmIP-eTRV-2-UK": "Heizkörperthermostat UK",
+  "HmIP-eTRV-B-2": "Heizkörperthermostat – basic",
+  "HmIP-eTRV-B-UK": "Heizkörperthermostat – basic UK",
+  "HmIP-eTRV-B-UK-2": "Heizkörperthermostat – basic UK",
+  "HmIP-eTRV-B1": "Heizkörperthermostat – basic",
+  "HmIP-eTRV-C": "Heizkörperthermostat – kompakt",
+  "HmIP-eTRV-C-2": "Heizkörperthermostat – kompakt",
+  "HmIP-eTRV-CL": "Heizkörperthermostat – kompakt plus",
+  "HmIP-eTRV-E-A": "Heizkörperthermostat – Evo",
+  "HmIP-eTRV-E-S": "Heizkörperthermostat – Evo",
+  "HmIP-eTRV-F": "Heizkörperthermostat",
+  "HmIP-eTRV-F-A": "Heizkörperthermostat",
+  "HmIP-FAL230-C10": "Fußbodenheizungsaktor – 10-fach, 230 V",
+  "HmIP-FAL230-C6": "Fußbodenheizungsaktor – 6-fach, 230 V",
+  "HmIP-FAL24-C10": "Fußbodenheizungsaktor – 10-fach, 24 V",
+  "HmIP-FAL24-C6": "Fußbodenheizungsaktor – 6-fach, 24 V",
+  "HmIP-FALMOT-C8": "Fußbodenheizungsaktor – 8-fach, motorisch",
+  "HmIP-FBL": "Jalousieaktor, Unterputzmontage",
+  "HmIP-FDC": "Universal Motorschloss Controller",
+  "HmIP-FDT": "Dimmaktor, Unterputzmontage",
+  "HmIP-FLC": "Universal Motorschloss Controller",
+  "HmIP-FROLL": "Rollladenaktor, Unterputzmontage",
+  "HmIP-FSI16": "Schaltaktor mit Tastereingang (16 A) – Unterputz",
+  "HmIP-FSI16-2": "Schaltaktor mit Tastereingang (16 A) – Unterputz",
+  "HmIP-FSI6": "Schaltaktor mit Tastereingang – Unterputz",
+  "HmIP-FSM16": "Schaltaktor mit Leistungsmessung, Unterputzmontage",
+  "HmIP-FWI": "Wiegand-Schnittstelle",
+  "HmIP-HAP": "Access Point",
+  "HmIP-HAP-A": "Access Point",
+  "HmIP-HAP-B1": "Access Point",
+  "HmIP-HAP2": "Access Point",
+  "HmIP-HAP2-A": "Access Point",
+  "HmIP-KRC4": "Schlüsselbundfernbedienung – 4 Tasten",
+  "HmIP-KRC4-2": "Schlüsselbundfernbedienung – 4 Tasten",
+  "HmIP-KRCA": "Schlüsselbundfernbedienung – Alarm",
+  "HmIP-KRCA-2": "Schlüsselbundfernbedienung – Alarm",
+  "HmIP-KRCK": "Schlüsselbundfernbedienung – Zutritt",
+  "HmIP-KRCK-2": "Schlüsselbundfernbedienung – Zutritt",
+  "HmIP-LSC": "Lightstrip Controller",
+  "HmIP-M-TD15": "Rohrmotor – 15 Nm",
+  "HmIP-MIO16-PCB": "Multi IO Modulplatine – 4x4",
+  "HmIP-MIOB": "Multi I/O-Box",
+  "HmIP-MOD-HO": "Modul für Hörmann-Antriebe",
+  "HmIP-MOD-OC8": "Schaltaktor mit OC-Ausgang",
+  "HmIP-MOD-RC8": "Modulplatine Sender – 8-fach",
+  "HmIP-MOD-TM": "Tormatic Modul",
+  "HmIP-MOD-WD-VK": "Modul für VEKA Fensterantriebe",
+  "HmIP-MP3P": "MP3 Kombisignalgeber",
+  "HmIP-PCBS": "Schaltplatine",
+  "HmIP-PCBS-BAT": "Schaltplatine für Batteriebetrieb",
+  "HmIP-PCBS2": "Schaltplatine – 2-fach",
+  "HmIP-PDT": "Dimmaktor",
+  "HmIP-PDT-A": "Dimmaktor",
+  "HmIP-PDT-CH": "Dimmaktor (CH)",
+  "HmIP-PDT-PE": "Dimmaktor (Pin Earth)",
+  "HmIP-PDT-UK": "Dimmaktor",
+  "HmIP-PMFS": "Netzausfallüberwachung",
+  "HmIP-PS": "Zwischenstecker Schalten",
+  "HmIP-PS-A": "Zwischenstecker Schalten",
+  "HmIP-PSM": "Zwischenstecker Schalten/Messen",
+  "HmIP-PSM-2": "Zwischenstecker Schalten/Messen",
+  "HmIP-PSM-A": "Zwischenstecker Schalten/Messen",
+  "HmIP-PSM-CH": "Zwischenstecker Schalten/Messen (CH)",
+  "HmIP-PSM-CH-2": "Zwischenstecker Schalten/Messen (CH)",
+  "HmIP-PSM-IT": "Zwischenstecker Schalten/Messen (IT)",
+  "HmIP-PSM-PE": "Zwischenstecker Schalten/Messen (Pin Earth)",
+  "HmIP-PSM-PE-2": "Zwischenstecker Schalten/Messen (Pin Earth)",
+  "HmIP-PSM-UK": "Zwischenstecker Schalten/Messen (UK)",
+  "HmIP-RC8": "Fernbedienung, 8 Kanal",
+  "HmIP-RGBW": "LED Controller – RGBW",
+  "HmIP-SAM": "Erschütterungs- / Beschleunigungssensor",
+  "HmIP-SCI": "Kontakt-Schnittstelle",
+  "HmIP-SCTH230": "CO2-Sensor, 230 V",
+  "HmIP-SFD": "Feinstaubsensor",
+  "HmIP-SLO": "Lichtsensor außen",
+  "HmIP-SMI55": "Bewegungsmelder für 55er Rahmen – innen",
+  "HmIP-SMI55-2": "Bewegungsmelder für 55er Rahmen – innen",
+  "HmIP-SMI55-A": "Bewegungsmelder für 55er Rahmen – innen",
+  "HmIP-SMO": "Bewegungsmelder außen",
+  "HmIP-SMO-A": "Bewegungsmelder außen",
+  "HmIP-SMO-A-2": "Bewegungsmelder außen",
+  "HmIP-SPDR": "Durchgangssensor mit Richtungserkennung",
+  "HmIP-SPI": "Präsenzmelder – innen",
+  "HmIP-SRD": "Regensensor",
+  "HmIP-SRH": "Fenster-/ Drehgriffkontakt",
+  "HmIP-STE2-PCB": "Temperatursensor mit externen Fühlern – 2-fach",
+  "HmIP-STH": "Temperatur- und Luftfeuchtigkeitssensor – innen",
+  "HmIP-STH-A": "Temperatur- und Luftfeuchtigkeitssensor – innen",
+  "HmIP-STHD-A": "Temperatur- und Luftfeuchtigkeitssensor mit Display – innen",
+  "HmIP-STHO": "Temperatur- und Luftfeuchtigkeitssensor außen",
+  "HmIP-STHO-A": "Temperatur- und Luftfeuchtigkeitssensor außen",
+  "HmIP-STI": "Touch-Sensor",
+  "HmIP-STV": "Neigungs- und Erschütterungssensor",
+  "HmIP-SWD-2": "Wassersensor",
+  "HmIP-SWDM-B2": "Fenster- und Türkontakt mit Magnet",
+  "HmIP-SWDO": "Fenster- und Türkontakt – optisch",
+  "HmIP-SWDO-PL": "Fenster- und Türkontakt – optisch, plus",
+  "HmIP-SWO-B": "Wettersensor – basic",
+  "HmIP-SWO-PL": "Wettersensor – plus",
+  "HmIP-SWO-PR": "Wettersensor – pro",
+  "HmIP-SWSD": "Rauchmelder",
+  "HmIP-SWSD-2-NL": "Rauchmelder",
+  "HmIP-UDI-PB2": "Universal Dimmeraufsatz – Taster",
+  "HmIP-UDI-PB2-A": "Universal Dimmeraufsatz – Taster",
+  "HmIP-USBSM": "Schalt-Mess-Aktor für USB",
+  "HmIP-WGD": "Funk Glasdisplay",
+  "HmIP-WGD-PL": "Funk Glasdisplay – plus",
+  "HmIP-WGS": "Glastaster",
+  "HmIP-WGS-A": "Glastaster",
+  "HmIP-WGT": "Glasthermostat – 230 V",
+  "HmIP-WGT-A": "Glasthermostat – 230 V",
+  "HmIP-WGTC": "Glas-Wandthermostat mit CO2-Sensor",
+  "HmIP-WGTC-A": "Glas-Wandthermostat mit CO2-Sensor",
+  "HmIP-WRC2": "Wandtaster 2-fach",
+  "HmIP-WRC2-2": "Wandtaster 2-fach",
+  "HmIP-WRC2-A": "Wandtaster 2-fach",
+  "HmIP-WRC2-A-2": "Wandtaster 2-fach",
+  "HmIP-WRC6-230-A": "Wandtaster 6-fach, 230 V",
+  "HmIP-WRC6-A": "Wandtaster 6-fach",
+  "HmIP-WRCC2": "Wandtaster – flach",
+  "HmIP-WRCD": "Wandtaster mit Statusdisplay",
+  "HmIP-WRCR": "Drehtaster",
+  "HmIP-WSC": "Servosteuerung",
+  "HmIP-WSM": "Bewässerungsaktor",
+  "HmIP-WT": "Wandthermostat",
+  "HmIP-WTH": "Wandthermostat",
+  "HmIP-WTH-2": "Wandthermostat mit Luftfeuchtigkeitssensor",
+  "HmIP-WTH-3": "Wandthermostat mit Luftfeuchtigkeitssensor",
+  "HmIP-WTH-3-A": "Wandthermostat mit Luftfeuchtigkeitssensor",
+  "HmIP-WTH-A": "Wandthermostat mit Luftfeuchtigkeitssensor",
+  "HmIP-WTH-B": "Wandthermostat – basic",
+  "HmIP-WTH-B-2": "Wandthermostat – basic",
+  "HmIP-WTH-B-A": "Wandthermostat – basic",
+  "HmIP-WUA": "Universalaktor – 0-10 V",
+  "HmIPW-BRC2": "Wired Wandtaster für Markenschalter – 2-fach",
+  "HmIPW-DRAP": "Wired Access Point",
+  "HmIPW-DRBL4": "Wired Jalousie- und Rollladenaktor – 4-fach",
+  "HmIPW-DRD3": "Wired Dimmaktor – 3-fach",
+  "HmIPW-DRI16": "Wired Eingangsmodul – 16-fach",
+  "HmIPW-DRI32": "Wired Eingangsmodul – 32-fach",
+  "HmIPW-DRS4": "Wired Schaltaktor – 4-fach",
+  "HmIPW-DRS8": "Wired Schaltaktor – 8-fach",
+  "HmIPW-FAL230-C10": "Wired Fußbodenheizungsaktor – 10-fach, 230 V",
+  "HmIPW-FAL230-C6": "Wired Fußbodenheizungsaktor – 6-fach, 230 V",
+  "HmIPW-FAL24-C10": "Wired Fußbodenheizungsaktor – 10-fach, 24 V",
+  "HmIPW-FAL24-C6": "Wired Fußbodenheizungsaktor – 6-fach, 24 V",
+  "HmIPW-FALMOT-C12": "Wired Fußbodenheizungsaktor – 12-fach, motorisch",
+  "HmIPW-FIO6": "Wired IO Modul Unterputz – 6-fach",
+  "HmIPW-SCTHD": "Wired CO2-Sensor",
+  "HmIPW-SMI55": "Wired Bewegungsmelder für 55er Rahmen – innen",
+  "HmIPW-SMI55-A": "Wired Bewegungsmelder für 55er Rahmen – innen",
+  "HmIPW-SMO230": "Wired Bewegungsmelder außen",
+  "HmIPW-SMO230-A": "Wired Bewegungsmelder außen",
+  "HmIPW-SPI": "Wired Präsenzmelder – innen",
+  "HmIPW-STH": "Wired Temperatur- und Luftfeuchtigkeitssensor – innen",
+  "HmIPW-STH-A": "Wired Temperatur- und Luftfeuchtigkeitssensor – innen",
+  "HmIPW-STHD": "Wired Temperatur- und Luftfeuchtigkeitssensor mit Display – innen",
+  "HmIPW-STHD-A": "Wired Temperatur- und Luftfeuchtigkeitssensor mit Display – innen",
+  "HmIPW-WGD": "Wired Glasdisplay",
+  "HmIPW-WGD-PL": "Wired Glasdisplay – plus",
+  "HmIPW-WGS": "Wired Glastaster",
+  "HmIPW-WGS-A": "Wired Glastaster",
+  "HmIPW-WGT": "Wired Glasthermostat",
+  "HmIPW-WGT-A": "Wired Glasthermostat",
+  "HmIPW-WGTC": "Wired Glas-Wandthermostat mit CO2-Sensor",
+  "HmIPW-WGTC-A": "Wired Glas-Wandthermostat mit CO2-Sensor",
+  "HmIPW-WRC2": "Wired Wandtaster – 2-fach",
+  "HmIPW-WRC2-A": "Wired Wandtaster – 2-fach",
+  "HmIPW-WRC6": "Wired Wandtaster – 6-fach",
+  "HmIPW-WRC6-A": "Wired Wandtaster – 6-fach",
+  "HmIPW-WTH": "Wired Wandthermostat mit Luftfeuchtigkeitssensor",
+  "HmIPW-WTH-A": "Wired Wandthermostat mit Luftfeuchtigkeitssensor",
 };
-/* Kategorien wie auf homematic-ip.com (Produktfilter, ausgelesen am 02.11.2026). Ein Gerät kann in mehreren Kategorien stehen. */
-export const CATEGORIES = ["Access Points & Zentralen", "Heizen & Raumklima", "Licht", "Beschattung", "Sicherheit & Alarm", "Wetter & Umwelt", "Zutritt", "Energiemanagement"];
-const [AP, HZ, LI, BE, SI, WE, ZU, EN] = CATEGORIES;
-const CATS_BY_NAME = {
-  "Home Control Unit": [AP],
-  "Fenster- und Türkontakt – verdeckter Einbau": [HZ, SI],
-  "Fenster- und Türkontakt – optisch": [HZ, SI],
-  "Fenster- und Türkontakt – optisch, plus": [HZ, SI],
-  "Fenster- und Türkontakt mit Magnet": [HZ, SI],
-  "Wandthermostat mit Luftfeuchtigkeitssensor": [HZ],
-  "Wandthermostat mit Schaltausgang – für Markenschalter, 230 V": [HZ],
-  "Schaltaktor für Markenschalter – mit Signalleuchte": [HZ, LI, BE, SI],
-  "Schalt-Mess-Aktor für Markenschalter": [LI],
-  "Schalt-Mess-Aktor – Unterputz": [HZ, LI, EN],
-  "Jalousieaktor für Markenschalter": [HZ, BE, SI],
-  "Rauchwarnmelder mit Q-Label": [SI],
-  "Heizkörperthermostat": [HZ],
-  "Heizkörperthermostat – pure": [HZ],
-  "Heizkörperthermostat – basic": [HZ],
-  "Heizkörperthermostat – Evo": [HZ],
-  "Fußbodenheizungscontroller – 12 Kanäle, motorisch": [HZ],
-  "Schaltaktor für Heizungsanlagen – 2-fach": [HZ],
-  "Bewegungsmelder mit Dämmerungssensor – innen": [LI, SI],
-  "Bewegungsmelder mit Dämmerungssensor – außen": [LI, SI],
-  "Bewegungsmelder mit Schaltaktor – außen": [LI, SI],
-  "Wandtaster – 6-fach": [LI, BE, SI],
-  "Wandtaster – 6-fach, 230 V": [LI, BE, SI],
-  "Garagentortaster": [ZU],
-  "Keypad": [LI, SI, ZU],
-  "Türschlossantrieb – pro": [ZU],
-  "Schaltsteckdose": [HZ, LI, SI],
-  "Schalt-Mess-Kabel – außen": [LI, SI, EN],
-  "Temperatur- und Luftfeuchtigkeitssensor mit Display – innen": [HZ],
-  "Alarmsirene – außen": [SI],
-  "Wassersensor": [SI],
-  "Kontakt-Schnittstelle Unterputz – 1-fach": [HZ, LI, BE, SI, ZU],
-  "Kontakt-Schnittstelle Unterputz – 6-fach": [HZ, LI, BE, SI, ZU],
-  "Schnittstelle für Energiesensoren": [EN], // auf der Homepage als Sets für Gas-, Strom- und Smart-Meter-Zähler, alle unter Energiemanagement
-};
-export const typeCategories = (code) => CATS_BY_NAME[typeName(code)] || [];
-const NOCAT = "\u0000ohne";
+/* Gerätearten: jedes Gerät gehört zu genau einer Art (Hauptfunktion). Zuordnung über das Modellkürzel,
+   damit auch Modelle ohne Eintrag in TYPE_NAMES eine Art bekommen. Gerätebezeichnungen: eQ-3 OCCU
+   (Gerätedatenbank der CCU, Stand 16.09.2026) und homematic-ip.com. */
+export const KINDS = ["Zentralen & Access Points", "Heizkörperthermostate", "Wandthermostate", "Fußbodenheizung & Heizungssteuerung", "Temperatur- & Luftsensoren", "Wetter & Außensensoren", "Fenster- & Türkontakte", "Bewegungs- & Präsenzmelder", "Rauch-, Wasser- & Alarmmelder", "Schlösser, Tore & Zutritt", "Rollladen & Jalousie", "Licht & Dimmer", "Schaltaktoren & Steckdosen", "Taster & Bedienelemente", "Garten & Bewässerung", "Schnittstellen & Sonstiges"];
+const K = KINDS;
+const KIND_RULES = [
+  [/^(HCU|CCU|HAP|DRAP)/, K[0]],
+  [/^ETRV/, K[1]],
+  [/^(B?WTH|WT$|WT-|WGTC?($|-))/, K[2]],
+  [/^(FAL|WHS)/, K[3]],
+  [/^(SWO|SRD|SLO|STHO)|^ELV:(CAP|TACO)/, K[5]],
+  [/^(STHD?($|-)|SCTH|SFD|STE\d)|^ELV:(CTH|PTI)/, K[4]],
+  [/^(SWDO|SWDM|SRH)/, K[6]],
+  [/^(SMI|SMO|SPI|SPDR|UDI-SMI)/, K[7]],
+  [/^(SWSD|SWD($|-)|ASIR|STV|SAM|MP3P|PMFS)|^ELV:CTV/, K[8]],
+  [/^(DLD|DLP|DLS|FDC|FLC|FWI|WKP|KRCK|WGC|MOD-HO|MOD-TM)/, K[9]],
+  [/^(BBL|BROLL|FBL|FROLL|DRBLI?\d|M-TD|MOD-WD)/, K[10]],
+  [/^(BDT|FDT|PDT|DRDI?\d|LSC|RGBW|UDI-PB|DRG-DALI)/, K[11]],
+  [/^WSM|^ELV:(WSM|SMSI)/, K[14]],
+  [/^(PS($|-|M)|BSL|BSM|FSM|FSI|FS(\d|$|-)|DRSI?\d|PCBS|MOD-OC|USBSM|WUA)|^ELV:(SMS|PSM|SW1|SPS|FS|WUA)/, K[12]],
+  [/^(WRC|BRC|BS2|WGS|WGD|STI|KRC|RC8|MOD-RC|DBB)|^ELV:(CRC|KRC|BS2|SB8)/, K[13]],
+];
+export function deviceKind(code) {
+  const c = String(code || "").trim().toUpperCase().split(/\s+/)[0].replace(/^HMIPW?-/, "").replace(/^ELV-SH-/, "ELV:");
+  if (!c) return K[15];
+  for (const [re, k] of KIND_RULES) if (re.test(c)) return k;
+  return K[15];
+}
 const TYPE_NAMES_UC = Object.fromEntries(Object.entries(TYPE_NAMES).map(([k, v]) => [k.toUpperCase(), v]));
 export function typeName(code) {
   const c = String(code || "").trim().toUpperCase();
@@ -502,7 +707,7 @@ details.tech[open] summary{margin-bottom:6px}
     <button type="button" class="ghost" id="bFilter">Filter</button>
   </div>
   <div class="tools">
-    <select id="gBy" aria-label="Gliederung"><option value="room">Nach Raum</option><option value="func">Nach Funktion</option><option value="type">Nach Gerätetyp</option><option value="none">A–Z ohne Gruppen</option></select>
+    <select id="gBy" aria-label="Gliederung"><option value="room">Nach Raum</option><option value="func">Nach Geräteart</option><option value="none">A–Z ohne Gruppen</option></select>
     <button type="button" class="ghost" id="bManual" title="Gerät ohne Aufkleber anlegen">+ Gerät</button>
   </div>
   <div id="list"></div>
@@ -515,7 +720,7 @@ details.tech[open] summary{margin-bottom:6px}
   </div>
   <div class="card">
     <label>2. Wie aufgeteilt?</label>
-    <select id="pTpl"><option value="room">Nach Räumen (je Raum ein Bogen)</option><option value="func">Nach Funktion (je Kategorie ein Bogen)</option><option value="alpha">Alphabetisch (je Anfangsbuchstabe ein Bogen)</option><option value="sel">Aktueller Filter der Geräteliste (ein Bogen)</option><option value="own">Eigene Bögen (je Seite wählbar)</option></select>
+    <select id="pTpl"><option value="room">Nach Räumen (je Raum ein Bogen)</option><option value="func">Nach Geräteart (je Art ein Bogen)</option><option value="alpha">Alphabetisch (je Anfangsbuchstabe ein Bogen)</option><option value="sel">Aktueller Filter der Geräteliste (ein Bogen)</option><option value="own">Eigene Bögen (je Seite wählbar)</option></select>
     <button type="button" class="ghost" id="mLay">Eigene Bögen bearbeiten …</button>
   </div>
   <div class="card">
@@ -632,8 +837,7 @@ details.tech[open] summary{margin-bottom:6px}
 <dialog id="dFilter"><div class="dlg">
   <h2>Filter</h2>
   <label>Räume</label><div class="chks" id="fRooms"></div>
-  <label>Kategorien (wie auf homematic-ip.com)</label><div class="chks" id="fCats"></div>
-  <label>Gerätetypen</label><div class="chks" id="fTypes"></div>
+  <label>Gerätearten</label><div class="chks" id="fKinds"></div>
   <label>Status</label>
   <select id="fStatus"><option value="">Alle Geräte</option><option value="missing">Original-Code fehlt noch</option><option value="done">Original-Code vorhanden</option><option value="srcchg">In {{SRC}} geändert</option><option value="gone">Nicht mehr in {{SRC}}</option></select>
   <div class="row2"><button type="button" class="ghost" id="fReset">Zurücksetzen</button><button type="button" class="pri" id="fDone">Fertig</button></div>
@@ -670,10 +874,10 @@ details.tech[open] summary{margin-bottom:6px}
 <dialog id="dHelp"><div class="dlg">
   <h2>Anleitung</h2>
   <div class="help">
-  <b>1. Geräte</b><p>Die Geräte kommen automatisch aus {{SRC}} (Name, Typ, Raum, Firmware, Seriennummer). Die Liste lässt sich nach Raum, Funktion oder Gerätetyp gliedern; Gruppen klappen per Antippen der Überschrift auf und zu.</p>
+  <b>1. Geräte</b><p>Die Geräte kommen automatisch aus {{SRC}} (Name, Typ, Raum, Firmware, Seriennummer). Die Liste lässt sich nach Raum oder Geräteart gliedern; Gruppen klappen per Antippen der Überschrift auf und zu.</p>
   <b>2. Original-Aufkleber scannen</b><p>„Original-Aufkleber scannen“ öffnet die Kamera (oder wahlweise ein Foto). Der Code wird dem Gerät mit derselben Seriennummer zugeordnet und der Geräteschlüssel gespeichert. Der Balken oben zeigt, wie viele schon erfasst sind; antippen zeigt die fehlenden.</p>
   <b>3. Ergänzen</b><p>Gerät antippen: Einbauort und Notiz eintragen, speichern.</p>
-  <b>4. Drucken</b><p>Reiter „Drucken“: Inhalt und Aufteilung wählen (Räume, Funktion, Alphabet, Filter oder eigene Bögen), Bögen anhaken, als PDF speichern oder am PC drucken. Ändert sich später etwas, nur den betroffenen Bogen neu drucken und austauschen.</p>
+  <b>4. Drucken</b><p>Reiter „Drucken“: Inhalt und Aufteilung wählen (Räume, Geräteart, Alphabet, Filter oder eigene Bögen), Bögen anhaken, als PDF speichern oder am PC drucken. Ändert sich später etwas, nur den betroffenen Bogen neu drucken und austauschen.</p>
   <b>Eigene Bögen</b><p>Reiter „Drucken“ → „Eigene Bögen bearbeiten“: Bogen anlegen, Feld antippen und „Gerät einsetzen“ oder „Mehrere einfügen“. Felder lassen sich leeren (bleiben beim Druck frei), einfügen, entfernen und verschieben; am PC auch per Ziehen. Gedruckt wird mit der Aufteilung „Eigene Bögen“, Seite für Seite.</p>
   <b>5. Änderungen</b><p>Werden Geräte in {{SRC}} umbenannt, verschoben oder entfernt, markiert die Liste sie. Im Gerät „Übernehmen“ oder „Beibehalten“ wählen.</p>
   <b>6. Sichern</b><p>Reiter „Mehr“ → „Backup speichern“ sichert alles inklusive Geräteschlüsseln. Bögen und Backups enthalten die Schlüssel – sicher aufbewahren.</p>
@@ -837,37 +1041,31 @@ function init(host) {
   }
 
   /* ---------- UI ---------- */
-  /* Filter: mehrere Räume und Gerätetypen, Status, Suche. Handauswahl hat für die Bögen Vorrang. */
-  const fRooms = new Set(), fTypes = new Set(), fCats = new Set();
-  const catsOf = (d) => { const c = typeCategories(d.type); return c.length ? c : [NOCAT]; };
+  /* Filter: mehrere Räume und Gerätearten, Status, Suche. */
+  const fRooms = new Set(), fKinds = new Set();
+  const kindOf = (d) => deviceKind(d.type);
   const NOROOM = "\u0000ohne";
   const roomOf = (d) => d.room || NOROOM;
   function refreshLists() {
     const rooms = [...new Set(devices.map((d) => d.room).filter(Boolean))].sort((a, b) => a.localeCompare(b, "de"));
     const types = [...new Set(devices.map((d) => d.type).filter(Boolean))].sort();
-    const tkeys = new Set(devices.map((d) => d.type).filter(Boolean).map(typeKey));
     $("rooms").innerHTML = rooms.map((r) => `<option value="${esc(r)}">`).join("");
     $("types").innerHTML = types.map((r) => `<option value="${esc(r)}">`).join("");
     for (const r of [...fRooms]) if (r !== NOROOM && !rooms.includes(r)) fRooms.delete(r);
-    for (const t of [...fTypes]) if (!tkeys.has(t)) fTypes.delete(t);
+    for (const k of [...fKinds]) if (!devices.some((d) => kindOf(d) === k)) fKinds.delete(k);
   }
   function fillFilterDialog() {
     const cnt = (f) => devices.filter(f).length;
     const rooms = [...new Set(devices.map((d) => d.room).filter(Boolean))].sort((a, b) => a.localeCompare(b, "de"));
     if (devices.some((d) => !d.room)) rooms.push(NOROOM);
-    const groups = new Map();
-    for (const d of devices) if (d.type) { const k = typeKey(d.type); if (!groups.has(k)) groups.set(k, new Set()); groups.get(k).add(d.type.split(/\s+/)[0]); }
-    const types = [...groups.keys()].sort((a, b) => a.localeCompare(b, "de"));
     const box = (set, v, label, n, sub) => `<label class="chk"><input type="checkbox" data-v="${esc(v)}"${set.has(v) ? " checked" : ""}><span>${esc(label)}${sub ? `<br><small class="code">${esc(sub)}</small>` : ""}</span><span class="n">${n}</span></label>`;
     $("fRooms").innerHTML = rooms.map((r) => box(fRooms, r, r === NOROOM ? "(ohne Raum)" : r, cnt((d) => roomOf(d) === r))).join("") || "<small>Keine Räume</small>";
-    const catList = CATEGORIES.filter((c) => devices.some((d) => catsOf(d).includes(c)));
-    if (devices.some((d) => catsOf(d).includes(NOCAT))) catList.push(NOCAT);
-    $("fCats").innerHTML = catList.map((c) => box(fCats, c, c === NOCAT ? "(ohne Kategorie)" : c, cnt((d) => catsOf(d).includes(c)))).join("") || "<small>Keine Kategorien</small>";
-    $("fTypes").innerHTML = types.map((t) => box(fTypes, t, t, cnt((d) => d.type && typeKey(d.type) === t), t === [...groups.get(t)][0] && groups.get(t).size === 1 ? "" : [...groups.get(t)].sort().join(", "))).join("") || "<small>Keine Typen</small>";
+    const kinds = KINDS.filter((k) => devices.some((d) => kindOf(d) === k));
+    $("fKinds").innerHTML = kinds.map((k) => box(fKinds, k, k, cnt((d) => kindOf(d) === k))).join("") || "<small>Keine Geräte</small>";
   }
   function filtered() {
     const q = $("q").value.trim().toLowerCase(), fs = $("fStatus").value;
-    return devices.filter((d) => (!fRooms.size || fRooms.has(roomOf(d))) && (!fTypes.size || (d.type && fTypes.has(typeKey(d.type)))) && (!fCats.size || catsOf(d).some((c) => fCats.has(c))) &&
+    return devices.filter((d) => (!fRooms.size || fRooms.has(roomOf(d))) && (!fKinds.size || fKinds.has(kindOf(d))) &&
       (!fs || (fs === "srcchg" ? pendingOf(d).length > 0 : fs === "gone" ? isGone(d) : (fs === "done") === hasCode(d))) && (!q || [d.name, d.type, typeName(d.type), d.room, d.loc, d.sgtin, d.note].join(" ").toLowerCase().includes(q)))
       .sort(byRoom);
   }
@@ -876,8 +1074,7 @@ function init(host) {
   function filterText() {
     const p = [], q = $("q").value.trim(), fs = $("fStatus").value;
     if (fRooms.size) p.push((fRooms.size > 1 ? "Räume: " : "Raum: ") + [...fRooms].map((r) => (r === NOROOM ? "ohne Raum" : r)).sort((a, b) => a.localeCompare(b, "de")).join(", "));
-    if (fCats.size) p.push((fCats.size > 1 ? "Kategorien: " : "Kategorie: ") + CATEGORIES.concat([NOCAT]).filter((c) => fCats.has(c)).map((c) => (c === NOCAT ? "ohne Kategorie" : c)).join(", "));
-    if (fTypes.size) p.push((fTypes.size > 1 ? "Gerätetypen: " : "Gerätetyp: ") + [...fTypes].sort((a, b) => a.localeCompare(b, "de")).join(", "));
+    if (fKinds.size) p.push((fKinds.size > 1 ? "Gerätearten: " : "Geräteart: ") + KINDS.filter((k) => fKinds.has(k)).join(", "));
     if (fs) p.push({ done: "Original-Code vorhanden", missing: "Original-Code fehlt noch", srcchg: `In ${cfg.source} geändert`, gone: `Nicht mehr in ${cfg.source}` }[fs]);
     if (q) p.push(`Suche „${q}“`);
     return p.join(" · ");
@@ -983,8 +1180,8 @@ function init(host) {
   };
 
   /* ---------- Druckvorlagen: Bögen (Abschnitte), die jeweils auf einer neuen Seite beginnen ---------- */
-  const TPL_NAMES = { room: "Nach Räumen", func: "Nach Funktion", alpha: "Alphabetisch", sel: "Filter/Auswahl" };
-  /* Funktions-Bögen: nach Gerät (Bezeichnung bzw. Kürzel), dann Name */
+  const TPL_NAMES = { room: "Nach Räumen", func: "Nach Geräteart", alpha: "Alphabetisch", sel: "Aktueller Filter" };
+  /* Geräteart-Bögen: nach Gerät (Bezeichnung bzw. Kürzel), dann Name */
   const byType = (a, b) => typeKey(a.type).localeCompare(typeKey(b.type), "de") || (a.type || "").localeCompare(b.type || "", "de") || byName(a, b);
   const byName = (a, b) => (a.name || a.type || "").localeCompare(b.name || b.type || "", "de");
   const initial = (d) => { const c = (d.name || d.type || "#").normalize("NFD").replace(/[\u0300-\u036f]/g, "").charAt(0).toUpperCase(); return /[A-Z]/.test(c) ? c : "#"; };
@@ -1002,11 +1199,11 @@ function init(host) {
     }
     for (const d of devices) {
       if (tpl === "room") add(d.room || "(ohne Raum)", d);
-      else if (tpl === "func") { const c = typeCategories(d.type); (c.length ? c : ["(ohne Kategorie)"]).forEach((k) => add(k, d)); } // in allen Kategorien laut Homepage
+      else if (tpl === "func") add(deviceKind(d.type), d);
       else add(initial(d), d);
     }
     let keys = [...map.keys()];
-    if (tpl === "func") keys.sort((a, b) => (CATEGORIES.indexOf(a) + 1 || 99) - (CATEGORIES.indexOf(b) + 1 || 99));
+    if (tpl === "func") keys.sort((a, b) => KINDS.indexOf(a) - KINDS.indexOf(b));
     else keys.sort((a, b) => (a.startsWith("(") - b.startsWith("(")) || (a === "#") - (b === "#") || a.localeCompare(b, "de"));
     return keys.map((k) => ({ key: k, title: tpl === "alpha" ? `Buchstabe ${k}` : k, note: `Bogen: ${tpl === "alpha" ? "Buchstabe " + k : k} · Vorlage: ${TPL_NAMES[tpl]}`,
       list: map.get(k).sort(tpl === "room" ? byName : tpl === "func" ? byType : (a, b) => (a.room || "~").localeCompare(b.room || "~", "de") || byName(a, b)) }));
@@ -1046,14 +1243,13 @@ function init(host) {
     const map = new Map(), add = (k, d) => { if (!map.has(k)) map.set(k, []); map.get(k).push(d); };
     for (const d of list) {
       if (by === "room") add(d.room || "(ohne Raum)", d);
-      else if (by === "func") { const c = typeCategories(d.type); (c.length ? c : ["(ohne Kategorie)"]).forEach((k) => add(k, d)); }
-      else if (by === "type") add(d.type ? typeName(d.type) || d.type : "(ohne Typ)", d);
+      else if (by === "func") add(deviceKind(d.type), d);
       else add("", d);
     }
     let keys = [...map.keys()];
-    if (by === "func") keys.sort((x, y) => (CATEGORIES.indexOf(x) + 1 || 99) - (CATEGORIES.indexOf(y) + 1 || 99));
+    if (by === "func") keys.sort((x, y) => KINDS.indexOf(x) - KINDS.indexOf(y));
     else keys.sort((x, y) => (x.startsWith("(") - y.startsWith("(")) || x.localeCompare(y, "de"));
-    return keys.map((k) => ({ key: k, list: map.get(k).sort(by === "room" || by === "none" ? byName : by === "type" ? byName : byType) }));
+    return keys.map((k) => ({ key: k, list: map.get(k).sort(by === "func" ? byType : byName) }));
   }
   function itemHtml(d, by) {
     const ok = hasCode(d), chg = pendingOf(d).length, gone = isGone(d);
@@ -1068,7 +1264,7 @@ function init(host) {
   function render() {
     refreshLists();
     const list = filtered(), ft = filterText(), by = $("gBy").value;
-    const nf = fRooms.size + fTypes.size + fCats.size + ($("fStatus").value ? 1 : 0);
+    const nf = fRooms.size + fKinds.size + ($("fStatus").value ? 1 : 0);
     $("bFilter").textContent = nf ? `Filter (${nf})` : "Filter"; $("bFilter").classList.toggle("on", !!nf);
     /* Fortschritt: Original-Codes */
     const n = devices.length, orig = devices.filter(hasCode).length;
@@ -1203,11 +1399,11 @@ function init(host) {
   $("q").addEventListener("input", render); $("fStatus").addEventListener("change", render);
   $("bFilter").onclick = () => { fillFilterDialog(); $("dFilter").showModal(); };
   const chkHandler = (set) => (e) => { const c = e.target.closest("input[data-v]"); if (!c) return; c.checked ? set.add(c.dataset.v) : set.delete(c.dataset.v); render(); };
-  $("fRooms").addEventListener("change", chkHandler(fRooms)); $("fTypes").addEventListener("change", chkHandler(fTypes)); $("fCats").addEventListener("change", chkHandler(fCats));
-  $("fReset").onclick = () => { fRooms.clear(); fTypes.clear(); fCats.clear(); $("fStatus").value = ""; fillFilterDialog(); render(); };
+  $("fRooms").addEventListener("change", chkHandler(fRooms)); $("fKinds").addEventListener("change", chkHandler(fKinds));
+  $("fReset").onclick = () => { fRooms.clear(); fKinds.clear(); $("fStatus").value = ""; fillFilterDialog(); render(); };
   $("fDone").onclick = () => $("dFilter").close();
   /* Gliederung, Gruppen, Fortschritt, Erklärung */
-  $("gBy").value = store.get("hmipGroupBy", "room"); if (!$("gBy").value) $("gBy").value = "room";
+  $("gBy").value = store.get("hmipGroupBy", "room") === "type" ? "func" : store.get("hmipGroupBy", "room"); if (!$("gBy").value) $("gBy").value = "room";
   $("gBy").onchange = () => { store.set("hmipGroupBy", $("gBy").value); render(); };
   $("list").addEventListener("click", (e) => {
     const g = e.target.closest(".grp"); if (!g) return;
@@ -1227,7 +1423,7 @@ function init(host) {
   root.querySelector(".tabs").addEventListener("click", (e) => { const b = e.target.closest("button[data-v]"); if (b) showView(b.dataset.v); });
   $("fInfo").addEventListener("click", (e) => {
     const a = e.target.closest("button[data-a]"); if (!a) return;
-    if (a.dataset.a === "clearF") { fRooms.clear(); fTypes.clear(); fCats.clear(); $("fStatus").value = ""; $("q").value = ""; }
+    if (a.dataset.a === "clearF") { fRooms.clear(); fKinds.clear(); $("fStatus").value = ""; $("q").value = ""; }
     if (a.dataset.a === "showChg") $("fStatus").value = "srcchg";
     if (a.dataset.a === "showGone") $("fStatus").value = "gone";
     if (a.dataset.a === "takeAll") { takeAll(); return; }
