@@ -561,7 +561,7 @@ small{color:var(--mut)}
 <dialog id="dPrint"><div class="dlg">
   <h2>Ausdrucke</h2>
   <label>Vorlage</label>
-  <select id="pTpl"><option value="room">Nach Räumen (je Raum ein Bogen)</option><option value="func">Nach Funktion (je Kategorie ein Bogen)</option><option value="alpha">Alphabetisch (je Anfangsbuchstabe ein Bogen)</option><option value="sel">Aktueller Filter bzw. Auswahl (ein Bogen)</option></select>
+  <select id="pTpl"><option value="room">Nach Räumen (je Raum ein Bogen)</option><option value="func">Nach Funktion (je Kategorie ein Bogen; Geräte in allen ihren Kategorien)</option><option value="alpha">Alphabetisch (je Anfangsbuchstabe ein Bogen)</option><option value="sel">Aktueller Filter bzw. Auswahl (ein Bogen)</option></select>
   <label>Inhalt</label>
   <select id="pKind"><option value="doc">Dokumentationsbogen (6 Geräte je Seite)</option><option value="stk">Nur QR-Code-Aufkleber</option></select>
   <label>Bögen <small>(nur angehakte werden gedruckt)</small></label>
@@ -803,7 +803,7 @@ function init(host) {
     if (tpl === "sel") { const s = sheetSet(); return [{ key: "sel", title: "Auswahl", note: s.note, list: s.list }]; }
     for (const d of devices) {
       if (tpl === "room") add(d.room || "(ohne Raum)", d);
-      else if (tpl === "func") add(typeCategories(d.type)[0] || "(ohne Kategorie)", d); // erste Kategorie in der Reihenfolge der Homepage
+      else if (tpl === "func") { const c = typeCategories(d.type); (c.length ? c : ["(ohne Kategorie)"]).forEach((k) => add(k, d)); } // in allen Kategorien laut Homepage
       else add(initial(d), d);
     }
     let keys = [...map.keys()];

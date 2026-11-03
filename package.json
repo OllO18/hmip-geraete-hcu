@@ -1,6 +1,6 @@
 {
   "name": "hmip-geraete-hcu",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "HmIP Geräteverwaltung als Plugin für die Homematic IP Home Control Unit",
   "private": true,
   "license": "MIT",
