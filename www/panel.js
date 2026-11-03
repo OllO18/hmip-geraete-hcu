@@ -796,6 +796,8 @@ function init(host) {
 
   /* ---------- Druckvorlagen: Bögen (Abschnitte), die jeweils auf einer neuen Seite beginnen ---------- */
   const TPL_NAMES = { room: "Nach Räumen", func: "Nach Funktion", alpha: "Alphabetisch", sel: "Filter/Auswahl" };
+  /* Funktions-Bögen: nach Gerät (Bezeichnung bzw. Kürzel), dann Name */
+  const byType = (a, b) => typeKey(a.type).localeCompare(typeKey(b.type), "de") || (a.type || "").localeCompare(b.type || "", "de") || byName(a, b);
   const byName = (a, b) => (a.name || a.type || "").localeCompare(b.name || b.type || "", "de");
   const initial = (d) => { const c = (d.name || d.type || "#").normalize("NFD").replace(/[\u0300-\u036f]/g, "").charAt(0).toUpperCase(); return /[A-Z]/.test(c) ? c : "#"; };
   function sections(tpl) {
@@ -810,7 +812,7 @@ function init(host) {
     if (tpl === "func") keys.sort((a, b) => (CATEGORIES.indexOf(a) + 1 || 99) - (CATEGORIES.indexOf(b) + 1 || 99));
     else keys.sort((a, b) => (a.startsWith("(") - b.startsWith("(")) || (a === "#") - (b === "#") || a.localeCompare(b, "de"));
     return keys.map((k) => ({ key: k, title: tpl === "alpha" ? `Buchstabe ${k}` : k, note: `Bogen: ${tpl === "alpha" ? "Buchstabe " + k : k} · Vorlage: ${TPL_NAMES[tpl]}`,
-      list: map.get(k).sort(tpl === "room" ? byName : (a, b) => (a.room || "~").localeCompare(b.room || "~", "de") || byName(a, b)) }));
+      list: map.get(k).sort(tpl === "room" ? byName : tpl === "func" ? byType : (a, b) => (a.room || "~").localeCompare(b.room || "~", "de") || byName(a, b)) }));
   }
   const lastChange = (l) => l.map((d) => d.updated || d.created || "").sort().pop() || "";
   const fmtDate = (iso) => { const t = Date.parse(iso); return isNaN(t) ? "–" : new Date(t).toLocaleDateString("de-DE"); };
