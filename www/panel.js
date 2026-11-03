@@ -359,11 +359,13 @@ const ICON = {
   photo: '<svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2.2"/><circle cx="9" cy="10" r="1.6"/><path d="M4 17.5l5-4 4 3 3-2 4 3"/></svg>',
   manual: '<svg viewBox="0 0 24 24"><path d="M4 20l1-4.2L16.3 4.5l3.2 3.2L8.2 19z"/><path d="M14 6.8l3.2 3.2"/></svg>',
   menu: '<svg viewBox="0 0 24 24"><circle cx="5.5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="18.5" cy="12" r="1.5"/></svg>',
+  list: '<svg viewBox="0 0 24 24"><path d="M8 6.5h12M8 12h12M8 17.5h12"/><circle cx="4" cy="6.5" r="1.2"/><circle cx="4" cy="12" r="1.2"/><circle cx="4" cy="17.5" r="1.2"/></svg>',
+  print: '<svg viewBox="0 0 24 24"><path d="M7 9V3.5h10V9"/><rect x="3.5" y="9" width="17" height="8" rx="2"/><path d="M7 14h10v6.5H7z"/></svg>',
 };
 
 const TEMPLATE = `
 <style>
-:host{display:block;height:100%;overflow:auto;box-sizing:border-box;
+:host{display:flex;flex-direction:column;height:100%;overflow:auto;box-sizing:border-box;
   --cyan:#01B7CD;--navy:#0E324C;--grey:#4F5054;--bg:#F3F2F7;--mut:#667180;--line:#E1E6EA;--bad:#C62828;
   background:var(--bg);color:var(--navy);font:400 16px/1.4 Mulish,"Segoe UI",system-ui,sans-serif;-webkit-text-size-adjust:100%}
 *{box-sizing:border-box}
@@ -458,82 +460,167 @@ video{width:100%;border-radius:16px;background:#000;max-height:55vh}
 #eSticker{background:#fff;border-radius:12px;padding:6px;align-self:flex-start;border:1px solid var(--line)}#eSticker svg{display:block;width:190px;height:auto}
 .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:11px 18px;border-radius:999px;z-index:99;display:none;font-weight:700;max-width:92vw;text-align:center}
 small{color:var(--mut)}
+main{padding-bottom:16px;flex:1 0 auto;width:100%}
+section>h2{margin:4px 2px 12px;font-size:22px}
+.card{background:#fff;border-radius:20px;padding:12px 14px;margin-bottom:12px;box-shadow:0 1px 3px rgba(14,50,76,.12);display:flex;flex-direction:column;gap:10px}
+.dlg .card{box-shadow:none;border:1px solid var(--line);margin:0}
+.card>label{font-size:14px;color:var(--navy)}
+.prog{position:relative;background:#fff;border-radius:20px;padding:12px 52px 12px 14px;margin-bottom:12px;box-shadow:0 1px 3px rgba(14,50,76,.12);cursor:pointer}
+.prog .ptxt{display:flex;flex-direction:column}.prog .ptxt span{font-size:13px;color:var(--mut)}
+.prog .bar{height:10px;border-radius:999px;background:#E9EDF1;margin-top:8px;overflow:hidden}.prog .bar span{display:block;height:100%;background:var(--cyan);border-radius:999px}
+.prog .q{position:absolute;right:10px;top:10px;width:34px;height:34px;border-radius:50%;padding:0;background:var(--cyan);color:#fff;font-size:18px}
+button.big{width:100%;gap:10px;padding:15px;font-size:17px;margin-bottom:12px;border-radius:18px}
+button.big svg{width:26px;height:26px;stroke:#fff;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.grp{display:flex;align-items:center;gap:8px;margin:14px 4px 8px;font-weight:700;color:var(--navy);cursor:pointer;user-select:none}
+.grp .n{color:var(--mut);font-weight:400;font-size:14px}.grp .arr{margin-left:auto;color:var(--mut);transition:transform .15s}
+.grp.closed .arr{transform:rotate(-90deg)}
+.tabs{position:sticky;bottom:0;z-index:6;flex:none;display:flex;background:var(--navy);padding:6px 8px calc(6px + env(safe-area-inset-bottom));gap:6px;border-radius:20px 20px 0 0;box-shadow:0 -2px 8px rgba(14,50,76,.3)}
+.tabs button{flex:1;flex-direction:column;gap:2px;background:transparent;color:#B9C6D1;padding:6px 4px;font-size:12px;border-radius:14px}
+.tabs button svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.tabs button svg circle{fill:currentColor}
+.tabs button.on{color:#fff;background:rgba(1,183,205,.25)}
+.printbar{position:sticky;bottom:72px;background:var(--bg);padding:8px 0;margin:0 -2px}
+details.tech summary{cursor:pointer;font-weight:700;font-size:14px}
+details.tech[open] summary{margin-bottom:6px}
+#eCode .msg{margin:0}
 </style>
 <header>
   <div class="top"><button class="burger" id="bBurger" style="display:none" aria-label="Menü">☰</button>
     <div class="title"><h1>HmIP Geräte</h1><div id="count"></div></div><span class="spacer"></span></div>
-  <div class="tiles">
-    <button class="tile" id="bScan">${ICON.scan}<span>Scannen</span></button>
-    <button class="tile" id="bPhoto">${ICON.photo}<span>Foto</span></button>
-    <button class="tile" id="bManual">${ICON.manual}<span>Manuell</span></button>
-    <button class="tile" id="bMenu">${ICON.menu}<span>Menü</span></button>
-  </div>
 </header>
 <main>
-  <details class="info" id="help" open>
-    <summary><span class="i">i</span>Original-Code und Online-Code: Was ist der Unterschied?<span class="tg"></span></summary>
-    <div class="body">
-      <div class="card full"><span class="h">Original-Code (mit Key) – „QR-Code-Aufkleber erfasst“</span>
-        Der QR-Code des Original-Aufklebers enthält die Gerätenummer (SGTIN) <u>und</u> den Geräteschlüssel (Key).
-        <ul><li>Reicht für jedes Anlernen, auch <b>offline an der HCU</b> ohne Internet (Anwenderhandbuch 5.3.6.2: dafür wird der „Local Key“ vom beiliegenden Aufkleber gebraucht).</li>
-        <li>Den Key gibt es <b>nur auf dem Original-Aufkleber</b>. Weder die HCU noch Home Assistant geben ihn heraus. Deshalb jeden Original-Aufkleber einmal scannen.</li></ul></div>
-      <div class="card onl"><span class="h">Online-Code (ohne Key) – „QR-Code-Aufkleber fehlt“</span>
-        Ist kein Key erfasst, erzeugt die App den Aufkleber nur aus der SGTIN. Er trägt den Hinweis „Ohne Key – nur Online-Anlernen“.
-        <ul><li>Reicht für das <b>normale Anlernen mit Internet</b>: Das Gerät wird dabei über den Homematic-IP-Server registriert; statt des QR-Codes genügen auch die letzten 4 Ziffern der SGTIN (Anwenderhandbuch 5.3.6.1).</li>
-        <li>Reicht <b>nicht</b> für das Offline-Anlernen an der HCU.</li></ul></div>
-      Tipp: Filter → „QR-Code-Aufkleber fehlt“ zeigt, welche Original-Aufkleber noch gescannt werden müssen. Bögen mit Original-Codes enthalten die Geräteschlüssel – sicher aufbewahren.
-    </div>
-  </details>
+<section id="vList">
+  <div class="prog" id="prog">
+    <div class="ptxt"><b id="progT"></b><span id="progS"></span></div>
+    <div class="bar"><span id="progB"></span></div>
+    <button type="button" class="q" id="bExplain" aria-label="Original-Code und Online-Code erklärt">?</button>
+  </div>
+  <div id="fInfo" hidden></div>
+  <button type="button" class="pri big" id="bScan">${ICON.scan}<span>Original-Aufkleber scannen</span></button>
   <div class="tools">
     <input id="q" type="search" placeholder="Suchen …">
     <button type="button" class="ghost" id="bFilter">Filter</button>
-    <button type="button" class="ghost" id="bSelect">Auswählen</button>
   </div>
-  <div id="fInfo" hidden></div>
+  <div class="tools">
+    <select id="gBy" aria-label="Gliederung"><option value="room">Nach Raum</option><option value="func">Nach Funktion</option><option value="type">Nach Gerätetyp</option><option value="none">A–Z ohne Gruppen</option></select>
+    <button type="button" class="ghost" id="bManual" title="Gerät ohne Aufkleber anlegen">+ Gerät</button>
+  </div>
   <div id="list"></div>
+</section>
+<section id="vPrint" hidden>
+  <h2>Drucken</h2>
+  <div class="card">
+    <label>1. Was soll gedruckt werden?</label>
+    <select id="pKind"><option value="doc">Dokumentationsbogen (6 Geräte je Seite)</option><option value="stk">Nur QR-Code-Aufkleber</option></select>
+  </div>
+  <div class="card">
+    <label>2. Wie aufgeteilt?</label>
+    <select id="pTpl"><option value="room">Nach Räumen (je Raum ein Bogen)</option><option value="func">Nach Funktion (je Kategorie ein Bogen)</option><option value="alpha">Alphabetisch (je Anfangsbuchstabe ein Bogen)</option><option value="sel">Aktueller Filter der Geräteliste (ein Bogen)</option><option value="own">Eigene Bögen (je Seite wählbar)</option></select>
+    <button type="button" class="ghost" id="mLay">Eigene Bögen bearbeiten …</button>
+  </div>
+  <div class="card">
+    <label>3. Welche Bögen?</label>
+    <div class="row2" style="position:static;padding:0;background:none"><button type="button" class="ghost" id="pAll">Alle</button><button type="button" class="ghost" id="pNone">Keine</button></div>
+    <div class="chks" id="pSecs" style="max-height:none"></div>
+    <small>Jeder Bogen beginnt auf einer neuen Seite. Nach Änderungen nur den betroffenen Bogen neu drucken und im Ordner austauschen.</small>
+  </div>
+  <div class="row2 printbar"><button type="button" class="ghost" id="pPrint">Drucken (PC)</button><button type="button" class="pri" id="pPdf">PDF erstellen</button></div>
+</section>
+<section id="vMore" hidden>
+  <h2>Mehr</h2>
+  <div class="card">
+    <label>Geräte</label>
+    <button class="ghost" id="mHa">Jetzt mit {{SRC}} abgleichen</button>
+    <small>Läuft auch automatisch. Neue Geräte kommen dazu, Änderungen und entfernte Geräte werden markiert; deine Eingaben bleiben erhalten.</small>
+  </div>
+  <div class="card">
+    <label>Daten</label>
+    <button class="ghost" id="mJson">Backup speichern (mit Geräteschlüsseln)</button>
+    <button class="ghost" id="mImport">Backup laden</button>
+    <button class="ghost" id="mCsv">Liste für Excel (CSV, ohne Schlüssel)</button>
+    <small>{{STORAGE_NOTE}}</small>
+  </div>
+  <div class="card">
+    <label>Hilfe</label>
+    <button class="ghost" id="mHelp">Anleitung</button>
+    <button class="ghost" id="mExplain">Original-Code und Online-Code erklärt</button>
+  </div>
+  <div class="card" id="mAcc" hidden>
+    <label>Zugang</label>
+    <button class="ghost" id="mPw">Passwort ändern</button>
+    <button class="ghost" id="mLogout">Abmelden</button>
+  </div>
+  <small class="ver">HmIP Geräteverwaltung · Version <span class="vno"></span></small>
+</section>
 </main>
+<nav class="tabs">
+  <button type="button" data-v="list" class="on">${ICON.list}<span>Geräte</span></button>
+  <button type="button" data-v="print">${ICON.print}<span>Drucken</span></button>
+  <button type="button" data-v="more">${ICON.menu}<span>Mehr</span></button>
+</nav>
 
 <input type="file" id="filePhoto" accept="image/*" capture="environment" hidden>
 <input type="file" id="fileImport" accept=".json,application/json" hidden>
 <div class="toast" id="toast"></div>
 
+<dialog id="dExplain"><div class="dlg info">
+  <h2>Original-Code und Online-Code</h2>
+  <div class="card full"><span class="h">Original-Code (mit Key)</span>
+    Der gescannte QR-Code des beiliegenden Aufklebers. Er enthält die Gerätenummer (SGTIN) <u>und</u> den Geräteschlüssel (Key).
+    <ul><li>Reicht für jedes Anlernen, auch <b>offline an der HCU</b> ohne Internet (Anwenderhandbuch 5.3.6.2: dafür wird der „Local Key“ vom beiliegenden Aufkleber gebraucht).</li>
+    <li>Den Key gibt es <b>nur auf dem Original-Aufkleber</b>. Weder die HCU noch Home Assistant geben ihn heraus. Deshalb jeden Original-Aufkleber einmal scannen.</li></ul></div>
+  <div class="card onl"><span class="h">Online-Code (ohne Key)</span>
+    Solange kein Original-Code gescannt ist, erzeugt die App einen Aufkleber nur aus der SGTIN, gekennzeichnet mit „Ohne Key – nur Online-Anlernen“.
+    <ul><li>Reicht für das <b>normale Anlernen mit Internet</b>: Das Gerät wird über den Homematic-IP-Server registriert; statt des QR-Codes genügen auch die letzten 4 Ziffern der SGTIN (Anwenderhandbuch 5.3.6.1).</li>
+    <li>Reicht <b>nicht</b> für das Offline-Anlernen an der HCU.</li></ul></div>
+  <small>Ausdrucke und Backups mit Original-Codes enthalten die Geräteschlüssel – sicher aufbewahren.</small>
+  <button type="button" class="ghost" id="xClose">Schließen</button>
+</div></dialog>
+
 <dialog id="dScan"><div class="dlg">
-  <h2>QR-Code-Aufkleber scannen</h2>
+  <h2>Original-Aufkleber scannen</h2>
   <video id="vid" playsinline muted></video>
   <div id="scanMsg" class="msg warn">Kamera wird gestartet …</div>
-  <button class="ghost" id="scanClose">Abbrechen</button>
+  <div class="btns"><button class="ghost" id="bPhoto">Stattdessen Foto wählen</button><button class="ghost" id="scanClose">Abbrechen</button></div>
 </div></dialog>
 
 <dialog id="dEdit"><form class="dlg" id="fEdit" method="dialog">
   <h2 id="eTitle">Gerät</h2>
   <div id="eMsg"></div>
-  <div><label>SGTIN / Gerätenummer <span id="eLast4"></span></label><input id="eSgtin" autocapitalize="characters" spellcheck="false"></div>
-  <div><label>Geräteschlüssel (geheim; Hex oder gedruckte Schreibweise)</label>
-    <div class="keyrow"><input id="eKey" type="password" autocomplete="off" spellcheck="false" autocapitalize="characters"><button type="button" class="ghost" id="eKeyShow">anzeigen</button></div></div>
-  <div id="eRawWrap" hidden><label>Scan-Inhalt (Format unbekannt, unverändert gespeichert)</label><textarea id="eRaw" rows="2" readonly></textarea></div>
-  <div class="row">
-    <div><label>Name (wie in HmIP-App)</label><input id="eName"></div>
-    <div><label>Gerätetyp</label><input id="eType" list="types" placeholder="z. B. HmIP-SWDO"></div>
-  </div>
-  <div class="row">
-    <div><label>Raum</label><input id="eRoom" list="rooms"></div>
-    <div><label>Einbauort</label><input id="eLoc" placeholder="z. B. Fenster links"></div>
-  </div>
-  <div><label>Firmware</label><input id="eFw"></div>
-  <div><label>Notiz</label><textarea id="eNote" rows="2"></textarea></div>
-  <div id="eStBox" hidden>
-    <label>QR-Code-Aufkleber (aus den gespeicherten Daten erzeugt)</label>
-    <button type="button" class="ghost" id="eStToggle">Aufkleber anzeigen</button>
-    <div id="eStWrap" hidden style="margin-top:8px">
-      <div id="eSticker"></div>
-      <div class="btns" style="margin-top:8px">
-        <button type="button" class="ghost" id="eStPng">PNG</button>
-        <button type="button" class="ghost" id="eStSvg">SVG</button>
-        <button type="button" class="ghost" id="eStPrint">Bogen-PDF</button>
+  <div class="card">
+    <label>Aufkleber</label>
+    <div id="eCode"></div>
+    <div class="btns"><button type="button" class="ghost" id="eScanHere">Original-Aufkleber scannen</button></div>
+    <div id="eStBox" hidden>
+      <button type="button" class="ghost" id="eStToggle">Aufkleber anzeigen</button>
+      <div id="eStWrap" hidden style="margin-top:8px">
+        <div id="eSticker"></div>
+        <div class="btns" style="margin-top:8px">
+          <button type="button" class="ghost" id="eStPng">PNG</button>
+          <button type="button" class="ghost" id="eStSvg">SVG</button>
+          <button type="button" class="ghost" id="eStPrint">Bogen-PDF</button>
+        </div>
       </div>
-      <small>Der QR-Code enthält SGTIN und Geräteschlüssel und lässt sich mit der Homematic-IP-App scannen. Der Schlüssel steht auch als Text im Aufkleber, so wie beim Original.</small>
     </div>
   </div>
+  <div class="card">
+    <label>Angaben</label>
+    <div><label>Name (wie in der HmIP-App)</label><input id="eName"></div>
+    <div class="row">
+      <div><label>Raum</label><input id="eRoom" list="rooms"></div>
+      <div><label>Einbauort</label><input id="eLoc" placeholder="z. B. Fenster links"></div>
+    </div>
+    <div><label>Notiz</label><textarea id="eNote" rows="2"></textarea></div>
+  </div>
+  <details class="card tech" id="eTech">
+    <summary>Technik (Typ, Seriennummer, Schlüssel, Firmware)</summary>
+    <div><label>Gerätetyp</label><input id="eType" list="types" placeholder="z. B. HmIP-SWDO"></div>
+    <div><label>SGTIN / Gerätenummer <span id="eLast4"></span></label><input id="eSgtin" autocapitalize="characters" spellcheck="false"></div>
+    <div><label>Geräteschlüssel (geheim; Hex oder gedruckte Schreibweise)</label>
+      <div class="keyrow"><input id="eKey" type="password" autocomplete="off" spellcheck="false" autocapitalize="characters"><button type="button" class="ghost" id="eKeyShow">anzeigen</button></div></div>
+    <div id="eRawWrap" hidden><label>Scan-Inhalt (Format unbekannt, unverändert gespeichert)</label><textarea id="eRaw" rows="2" readonly></textarea></div>
+    <div><label>Firmware</label><input id="eFw"></div>
+  </details>
   <div class="actions">
     <button type="button" class="bad" id="eDel">Löschen</button>
     <button type="button" class="ghost" id="eCancel">Abbrechen</button>
@@ -547,41 +634,9 @@ small{color:var(--mut)}
   <label>Räume</label><div class="chks" id="fRooms"></div>
   <label>Kategorien (wie auf homematic-ip.com)</label><div class="chks" id="fCats"></div>
   <label>Gerätetypen</label><div class="chks" id="fTypes"></div>
-  <label>QR-Code-Aufkleber</label>
-  <select id="fStatus"><option value="">Alle Geräte</option><option value="missing">QR-Code-Aufkleber fehlt</option><option value="done">QR-Code-Aufkleber erfasst</option><option value="srcchg">In {{SRC}} geändert</option><option value="gone">Nicht mehr in {{SRC}}</option></select>
+  <label>Status</label>
+  <select id="fStatus"><option value="">Alle Geräte</option><option value="missing">Original-Code fehlt noch</option><option value="done">Original-Code vorhanden</option><option value="srcchg">In {{SRC}} geändert</option><option value="gone">Nicht mehr in {{SRC}}</option></select>
   <div class="row2"><button type="button" class="ghost" id="fReset">Zurücksetzen</button><button type="button" class="pri" id="fDone">Fertig</button></div>
-</div></dialog>
-<dialog id="dMenu"><div class="dlg">
-  <h2>Übernahme, Aufkleber, Export</h2>
-  <button class="pri" id="mHa">Geräte aus {{SRC}} übernehmen</button>
-  <small>Liest alle eQ-3-Geräte mit Seriennummer aus {{SRC}} (Name, Typ, Raum, Firmware). Vorhandene Einträge und deine Eingaben bleiben erhalten. Der Abgleich läuft auch automatisch beim Öffnen dieser Seite; geänderte Namen und Räume sowie entfernte Geräte werden markiert.</small>
-  <button class="pri" id="mPrint">Ausdrucke erstellen …</button>
-  <small>Dokumentationsbogen (Nachbau des Homematic-IP-Vordrucks) oder nur QR-Code-Aufkleber, aufgeteilt nach Räumen, Funktion oder Alphabet. Jeder Bogen beginnt auf einer neuen Seite und lässt sich einzeln neu drucken und austauschen.</small>
-  <button class="ghost" id="mCsv">CSV für Excel exportieren</button>
-  <small>Die CSV enthält keine Geräteschlüssel.</small>
-  <button class="ghost" id="mJson">Backup (JSON, enthält die Geräteschlüssel)</button>
-  <button class="ghost" id="mImport">Backup importieren</button>
-  <small>{{STORAGE_NOTE}} Backups aus früheren Versionen lassen sich importieren (Fotos werden nicht mehr übernommen).</small>
-  <button class="ghost" id="mLay">Eigene Bögen zusammenstellen …</button>
-  <small>Freie Dokumentationsbögen: Geräte in beliebige Felder setzen, Felder frei lassen oder einfügen, Reihenfolge ändern. Gedruckt wird über „Ausdrucke erstellen“, Seite für Seite austauschbar.</small>
-  <button class="ghost" id="mHelp">Anleitung</button>
-  <button class="ghost" id="mPw" hidden>Passwort ändern</button>
-  <button class="ghost" id="mLogout" hidden>Abmelden</button>
-  <button class="ghost" id="mClose">Schließen</button>
-  <small class="ver">HmIP Geräteverwaltung · Version <span class="vno"></span></small>
-</div></dialog>
-<dialog id="dPrint"><div class="dlg">
-  <h2>Ausdrucke</h2>
-  <label>Vorlage</label>
-  <select id="pTpl"><option value="room">Nach Räumen (je Raum ein Bogen)</option><option value="func">Nach Funktion (je Kategorie ein Bogen; Geräte in allen ihren Kategorien)</option><option value="alpha">Alphabetisch (je Anfangsbuchstabe ein Bogen)</option><option value="sel">Aktueller Filter bzw. Auswahl (ein Bogen)</option><option value="own">Eigene Bögen (je Seite auswählbar)</option></select>
-  <label>Inhalt</label>
-  <select id="pKind"><option value="doc">Dokumentationsbogen (6 Geräte je Seite)</option><option value="stk">Nur QR-Code-Aufkleber</option></select>
-  <label>Bögen <small>(nur angehakte werden gedruckt)</small></label>
-  <div class="row2" style="position:static;padding:0"><button type="button" class="ghost" id="pAll">Alle</button><button type="button" class="ghost" id="pNone">Keine</button></div>
-  <div class="chks" id="pSecs" style="max-height:40vh"></div>
-  <small>Jeder Bogen beginnt auf einer neuen Seite; Kopfzeile mit Bogenname, Stand und Seitenzahl. So lässt sich nach Änderungen nur der betroffene Bogen neu drucken und im Ordner austauschen. „Zuletzt geändert“ zeigt, wann sich ein Gerät des Bogens zuletzt geändert hat.</small>
-  <div class="row2"><button type="button" class="ghost" id="pPrint">Drucken (PC)</button><button type="button" class="pri" id="pPdf">PDF erstellen</button></div>
-  <button type="button" class="ghost" id="pClose">Schließen</button>
 </div></dialog>
 <dialog id="dLay"><div class="dlg">
   <h2>Eigene Bögen</h2>
@@ -615,13 +670,13 @@ small{color:var(--mut)}
 <dialog id="dHelp"><div class="dlg">
   <h2>Anleitung</h2>
   <div class="help">
-  <b>1. Geräte übernehmen</b><p>Die Geräte kommen automatisch aus {{SRC}} (Name, Typ, Raum, Firmware, Seriennummer). Über Menü → „Geräte aus {{SRC}} übernehmen“ geht es auch von Hand.</p>
-  <b>2. Original-Aufkleber scannen</b><p>„Scannen“ öffnet die Kamera, „Foto“ liest ein Bild aus. Der Code wird dem Gerät mit derselben Seriennummer zugeordnet; so wird der Geräteschlüssel (Key) gespeichert. Ohne Key erzeugt die App einen Online-Code (siehe Erklärung oben auf der Seite).</p>
+  <b>1. Geräte</b><p>Die Geräte kommen automatisch aus {{SRC}} (Name, Typ, Raum, Firmware, Seriennummer). Die Liste lässt sich nach Raum, Funktion oder Gerätetyp gliedern; Gruppen klappen per Antippen der Überschrift auf und zu.</p>
+  <b>2. Original-Aufkleber scannen</b><p>„Original-Aufkleber scannen“ öffnet die Kamera (oder wahlweise ein Foto). Der Code wird dem Gerät mit derselben Seriennummer zugeordnet und der Geräteschlüssel gespeichert. Der Balken oben zeigt, wie viele schon erfasst sind; antippen zeigt die fehlenden.</p>
   <b>3. Ergänzen</b><p>Gerät antippen: Einbauort und Notiz eintragen, speichern.</p>
-  <b>4. Ausdrucken</b><p>Menü → „Ausdrucke erstellen“: Vorlage wählen (Räume, Funktion, Alphabet), Bögen anhaken, als PDF speichern oder am PC drucken. Ändert sich später etwas, nur den betroffenen Bogen neu drucken und austauschen.</p>
-  <b>Eigene Bögen</b><p>Menü → „Eigene Bögen zusammenstellen“: Bogen anlegen, Feld antippen und „Gerät einsetzen“ oder „Mehrere einfügen“. Felder lassen sich leeren (bleiben beim Druck frei), einfügen, entfernen und verschieben; am PC auch per Ziehen. Gedruckt wird über „Ausdrucke erstellen“ → Vorlage „Eigene Bögen“, Seite für Seite.</p>
+  <b>4. Drucken</b><p>Reiter „Drucken“: Inhalt und Aufteilung wählen (Räume, Funktion, Alphabet, Filter oder eigene Bögen), Bögen anhaken, als PDF speichern oder am PC drucken. Ändert sich später etwas, nur den betroffenen Bogen neu drucken und austauschen.</p>
+  <b>Eigene Bögen</b><p>Reiter „Drucken“ → „Eigene Bögen bearbeiten“: Bogen anlegen, Feld antippen und „Gerät einsetzen“ oder „Mehrere einfügen“. Felder lassen sich leeren (bleiben beim Druck frei), einfügen, entfernen und verschieben; am PC auch per Ziehen. Gedruckt wird mit der Aufteilung „Eigene Bögen“, Seite für Seite.</p>
   <b>5. Änderungen</b><p>Werden Geräte in {{SRC}} umbenannt, verschoben oder entfernt, markiert die Liste sie. Im Gerät „Übernehmen“ oder „Beibehalten“ wählen.</p>
-  <b>6. Sichern</b><p>Menü → „Backup (JSON)“ sichert alles inklusive Geräteschlüsseln. Bögen und Backups enthalten die Schlüssel – sicher aufbewahren.</p>
+  <b>6. Sichern</b><p>Reiter „Mehr“ → „Backup speichern“ sichert alles inklusive Geräteschlüsseln. Bögen und Backups enthalten die Schlüssel – sicher aufbewahren.</p>
   {{HELP_EXTRA}}
   </div>
   <small class="ver">Version <span class="vno"></span></small>
@@ -714,12 +769,12 @@ function init(host) {
   async function startScan() {
     const det = await getDetector();
     $("dScan").showModal();
-    if (!navigator.mediaDevices?.getUserMedia) { $("scanMsg").textContent = "Kein Kamerazugriff (HTTPS nötig). Nimm „Foto“ oder „Manuell“."; return; }
+    if (!navigator.mediaDevices?.getUserMedia) { $("scanMsg").textContent = "Kein Kamerazugriff (HTTPS nötig). Tippe auf „Stattdessen Foto wählen“."; return; }
     try {
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 } }, audio: false });
       $("vid").srcObject = stream; await $("vid").play();
       $("scanMsg").textContent = "QR-Code-Aufkleber ins Bild halten …"; scanning = true; loop(det);
-    } catch (e) { $("scanMsg").textContent = "Kamera nicht verfügbar: " + e.message + ". Nimm „Foto“ oder „Manuell“."; }
+    } catch (e) { $("scanMsg").textContent = "Kamera nicht verfügbar: " + e.message + ". Tippe auf „Stattdessen Foto wählen“."; }
   }
 
   async function loop(det) {
@@ -783,9 +838,8 @@ function init(host) {
 
   /* ---------- UI ---------- */
   /* Filter: mehrere Räume und Gerätetypen, Status, Suche. Handauswahl hat für die Bögen Vorrang. */
-  const fRooms = new Set(), fTypes = new Set(), fCats = new Set(), picked = new Set();
+  const fRooms = new Set(), fTypes = new Set(), fCats = new Set();
   const catsOf = (d) => { const c = typeCategories(d.type); return c.length ? c : [NOCAT]; };
-  let selMode = false;
   const NOROOM = "\u0000ohne";
   const roomOf = (d) => d.room || NOROOM;
   function refreshLists() {
@@ -796,7 +850,6 @@ function init(host) {
     $("types").innerHTML = types.map((r) => `<option value="${esc(r)}">`).join("");
     for (const r of [...fRooms]) if (r !== NOROOM && !rooms.includes(r)) fRooms.delete(r);
     for (const t of [...fTypes]) if (!tkeys.has(t)) fTypes.delete(t);
-    for (const id of [...picked]) if (!devices.some((d) => d.id === id)) picked.delete(id);
   }
   function fillFilterDialog() {
     const cnt = (f) => devices.filter(f).length;
@@ -825,13 +878,12 @@ function init(host) {
     if (fRooms.size) p.push((fRooms.size > 1 ? "Räume: " : "Raum: ") + [...fRooms].map((r) => (r === NOROOM ? "ohne Raum" : r)).sort((a, b) => a.localeCompare(b, "de")).join(", "));
     if (fCats.size) p.push((fCats.size > 1 ? "Kategorien: " : "Kategorie: ") + CATEGORIES.concat([NOCAT]).filter((c) => fCats.has(c)).map((c) => (c === NOCAT ? "ohne Kategorie" : c)).join(", "));
     if (fTypes.size) p.push((fTypes.size > 1 ? "Gerätetypen: " : "Gerätetyp: ") + [...fTypes].sort((a, b) => a.localeCompare(b, "de")).join(", "));
-    if (fs) p.push({ done: "QR-Code-Aufkleber erfasst", missing: "QR-Code-Aufkleber fehlt", srcchg: `In ${cfg.source} geändert`, gone: `Nicht mehr in ${cfg.source}` }[fs]);
+    if (fs) p.push({ done: "Original-Code vorhanden", missing: "Original-Code fehlt noch", srcchg: `In ${cfg.source} geändert`, gone: `Nicht mehr in ${cfg.source}` }[fs]);
     if (q) p.push(`Suche „${q}“`);
     return p.join(" · ");
   }
   /* Geräte für die Bögen: Handauswahl, sonst die gefilterte Liste */
   function sheetSet() {
-    if (picked.size) { const l = devices.filter((d) => picked.has(d.id)).sort(byRoom); return { list: l, note: `Handauswahl: ${l.length} ${l.length === 1 ? "Gerät" : "Geräte"}` }; }
     const l = filtered(), f = filterText();
     return { list: l, note: f ? `Filter: ${f} (${l.length} ${l.length === 1 ? "Gerät" : "Geräte"})` : `Alle Geräte (${l.length})` };
   }
@@ -874,8 +926,8 @@ function init(host) {
     });
   }
   const layOp = async (fn) => { if (!lay) return; fn(lay.slots); padSlots(lay.slots); drawLay(); await saveLay(); };
-  $("mLay").onclick = async () => { $("dMenu").close(); await loadLayouts(); lay = layouts[0] ? { ...layouts[0], slots: [...layouts[0].slots] } : null; lSel = 0; drawLay(); $("dLay").showModal(); };
-  $("lClose").onclick = () => $("dLay").close();
+  $("mLay").onclick = async () => { await loadLayouts(); lay = layouts[0] ? { ...layouts[0], slots: [...layouts[0].slots] } : null; lSel = 0; drawLay(); $("dLay").showModal(); };
+  $("lClose").onclick = () => { $("dLay").close(); if (!$("vPrint").hidden) fillPrint(); };
   $("lSel").onchange = () => { const l = layouts.find((x) => x.id === $("lSel").value); if (l) { lay = { ...l, slots: [...l.slots] }; lSel = 0; drawLay(); } };
   $("lNew").onclick = async () => {
     const name = await askName("Name des neuen Bogens", "Eigener Bogen"); if (!name) return;
@@ -972,7 +1024,7 @@ function init(host) {
       const n = kind === "doc" ? x.list.length : x.list.filter((d) => stickerContent(d)).length;
       const pages = kind === "doc" ? Math.max(1, Math.ceil(x.list.length / 6)) : stickerPages(x.list.filter((d) => stickerContent(d))).length;
       return `<label class="chk"><input type="checkbox" data-k="${esc(x.key)}"${pSel.keys.has(x.key) ? " checked" : ""}><span>${esc(x.title)}<br><small class="code">${n} ${n === 1 ? "Gerät" : "Geräte"} · ${pages} ${pages === 1 ? "Seite" : "Seiten"} · zuletzt geändert ${fmtDate(lastChange(x.list))}</small></span></label>`;
-    }).join("") || (tpl === "own" ? "<small>Noch keine eigenen Bögen – Menü → „Eigene Bögen zusammenstellen“.</small>" : "<small>Keine Geräte</small>");
+    }).join("") || (tpl === "own" ? "<small>Noch keine eigenen Bögen – oben „Eigene Bögen bearbeiten“.</small>" : "<small>Keine Geräte</small>");
   }
   function printSet() {
     const tpl = $("pTpl").value, kind = $("pKind").value, when = today();
@@ -987,34 +1039,66 @@ function init(host) {
     return { pages, name };
   }
 
+  /* Gliederung der Liste (wählbar, im Browser gemerkt) und zugeklappte Gruppen */
+  const store = { get: (k, d) => { try { return localStorage.getItem(k) ?? d; } catch (e) { return d; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* ok */ } } };
+  let closedGroups = new Set(JSON.parse(store.get("hmipClosed", "[]")));
+  function groupsOf(list, by) {
+    const map = new Map(), add = (k, d) => { if (!map.has(k)) map.set(k, []); map.get(k).push(d); };
+    for (const d of list) {
+      if (by === "room") add(d.room || "(ohne Raum)", d);
+      else if (by === "func") { const c = typeCategories(d.type); (c.length ? c : ["(ohne Kategorie)"]).forEach((k) => add(k, d)); }
+      else if (by === "type") add(d.type ? typeName(d.type) || d.type : "(ohne Typ)", d);
+      else add("", d);
+    }
+    let keys = [...map.keys()];
+    if (by === "func") keys.sort((x, y) => (CATEGORIES.indexOf(x) + 1 || 99) - (CATEGORIES.indexOf(y) + 1 || 99));
+    else keys.sort((x, y) => (x.startsWith("(") - y.startsWith("(")) || x.localeCompare(y, "de"));
+    return keys.map((k) => ({ key: k, list: map.get(k).sort(by === "room" || by === "none" ? byName : by === "type" ? byName : byType) }));
+  }
+  function itemHtml(d, by) {
+    const ok = hasCode(d), chg = pendingOf(d).length, gone = isGone(d);
+    const sub = [typeName(d.type) || d.type, by !== "room" ? d.room : "", d.loc].filter(Boolean).join(" · ");
+    return `<div class="item" data-id="${esc(d.id)}">
+      <div class="ico ${ok ? "ok" : "miss"}" title="${ok ? "Original-Code vorhanden" : "Nur Online-Code"}">QR${ok ? '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>' : ""}</div>
+      <div class="main"><div class="t">${esc(d.name || d.type || "(ohne Name)")}</div>
+        <div class="s">${esc(sub)}</div>
+        ${chg || gone ? `<div>${chg ? `<span class="pill chg">In ${esc(cfg.source)} geändert</span>` : ""}${gone ? `<span class="pill gone">Nicht mehr in ${esc(cfg.source)}</span>` : ""}</div>` : ""}
+      </div><span class="chev">›</span></div>`;
+  }
   function render() {
     refreshLists();
-    const list = filtered(), ft = filterText();
-    $("bFilter").textContent = fRooms.size + fTypes.size + fCats.size + ($("fStatus").value ? 1 : 0) ? `Filter (${fRooms.size + fTypes.size + fCats.size + ($("fStatus").value ? 1 : 0)})` : "Filter";
-    $("bFilter").classList.toggle("on", !!(fRooms.size || fTypes.size || fCats.size || $("fStatus").value));
-    $("bSelect").textContent = selMode ? "Auswahl fertig" : "Auswählen"; $("bSelect").classList.toggle("on", selMode);
+    const list = filtered(), ft = filterText(), by = $("gBy").value;
+    const nf = fRooms.size + fTypes.size + fCats.size + ($("fStatus").value ? 1 : 0);
+    $("bFilter").textContent = nf ? `Filter (${nf})` : "Filter"; $("bFilter").classList.toggle("on", !!nf);
+    /* Fortschritt: Original-Codes */
+    const n = devices.length, orig = devices.filter(hasCode).length;
+    $("count").textContent = n ? `${n} ${n === 1 ? "Gerät" : "Geräte"}` : "";
+    $("prog").hidden = !n;
+    $("progT").textContent = `Original-Codes: ${orig} von ${n} gescannt`;
+    $("progS").textContent = orig < n ? `Noch ${n - orig} fehlen – antippen zeigt sie` : "Alle Original-Aufkleber erfasst";
+    $("progB").style.width = n ? `${Math.round((orig / n) * 100)}%` : "0";
+    /* Hinweise */
     let info = "";
-    if (ft) info += `<span>${esc(ft)} – ${list.length} von ${devices.length}</span><button type="button" data-a="clearF">Filter löschen</button>`;
-    if (selMode || picked.size) info += `<span><b>${picked.size} ausgewählt</b>${picked.size ? " – Bögen enthalten nur diese Geräte" : ""}</span>` +
-      (selMode ? `<button type="button" data-a="all">Alle angezeigten</button>` : "") + (picked.size ? `<button type="button" data-a="none">Auswahl aufheben</button>` : "");
+    if (ft) info += `<span>${esc(ft)} – ${list.length} von ${n}</span><button type="button" data-a="clearF">Filter löschen</button>`;
     const nChg = devices.filter((d) => pendingOf(d).length).length, nGone = devices.filter(isGone).length;
     if (nChg) info += `<span><b>${nChg} ${nChg === 1 ? "Gerät" : "Geräte"} in ${esc(cfg.source)} geändert</b> (Name oder Raum)</span><button type="button" data-a="showChg">Anzeigen</button><button type="button" data-a="takeAll">Alle übernehmen</button>`;
     if (nGone) info += `<span><b>${nGone} nicht mehr in ${esc(cfg.source)}</b></span><button type="button" data-a="showGone">Anzeigen</button>`;
     $("fInfo").innerHTML = info; $("fInfo").hidden = !info;
-    $("count").textContent = `${devices.length} Geräte · QR-Code-Aufkleber ${devices.filter(hasCode).length}/${devices.length}`;
-    $("list").innerHTML = list.length ? list.map((d) => {
-      const ok = hasCode(d);
-      return `
-      <div class="item${picked.has(d.id) ? " sel" : ""}" data-id="${esc(d.id)}">
-        ${selMode ? '<div class="cb"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>' : ""}<div class="ico ${ok ? "ok" : "miss"}">QR${ok ? '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>' : ""}</div>
-        <div class="main">
-          <div class="t">${esc(d.name || d.type || "(ohne Name)")}</div>
-          <div class="s">${esc(typeLabel(d.type))}${d.type && d.sgtin ? " · " : ""}${d.sgtin ? "SGTIN …" + esc(last4(d.sgtin)) : ""}${d.fw ? " · FW " + esc(d.fw) : ""}</div>
-          <div><span class="pill ${ok ? "ok" : "miss"}">${ok ? "QR-Code-Aufkleber erfasst" : "QR-Code-Aufkleber fehlt"}</span>${d.room ? `<span class="pill room">${esc(d.room)}</span>` : ""}${pendingOf(d).length ? `<span class="pill chg">In ${esc(cfg.source)} geändert</span>` : ""}${isGone(d) ? `<span class="pill gone">Nicht mehr in ${esc(cfg.source)}</span>` : ""}${d.loc ? `<span class="s">${esc(d.loc)}</span>` : ""}</div>
-        </div><span class="chev">›</span></div>`;
-    }).join("") :
-      `<div class="empty">${devices.length ? "Keine Treffer." : "Noch keine Geräte.<br>Öffne das Menü (⋯) und übernimm die Geräte aus " + cfg.source + ", oder tippe auf „Scannen“."}</div>`;
+    if (!n) {
+      $("list").innerHTML = `<div class="card"><label>Erste Schritte</label>
+        <div><b>1.</b> Die Geräte kommen automatisch aus ${esc(cfg.source)}. Falls die Liste leer bleibt: „Mehr“ → „Jetzt mit ${esc(cfg.source)} abgleichen“.</div>
+        <div><b>2.</b> Mit „Original-Aufkleber scannen“ die beiliegenden QR-Code-Aufkleber erfassen.</div>
+        <div><b>3.</b> Unter „Drucken“ den Dokumentationsbogen erstellen.</div></div>`;
+      return;
+    }
+    if (!list.length) { $("list").innerHTML = '<div class="empty">Keine Treffer.</div>'; return; }
+    $("list").innerHTML = groupsOf(list, by).map((g) => {
+      if (!g.key) return g.list.map((d) => itemHtml(d, by)).join("");
+      const ck = by + ":" + g.key, closed = closedGroups.has(ck);
+      return `<div class="grp${closed ? " closed" : ""}" data-g="${esc(ck)}">${esc(g.key)} <span class="n">${g.list.length}</span><span class="arr">▾</span></div>${closed ? "" : g.list.map((d) => itemHtml(d, by)).join("")}`;
+    }).join("");
   }
+
 
   function draft() {
     return { sgtin: norm($("eSgtin").value), key: keyFromInput($("eKey").value) || norm($("eKey").value), fmt: cur ? cur.fmt : "", raw: cur ? cur.raw : "",
@@ -1024,13 +1108,17 @@ function init(host) {
     const d = draft();
     const svg = validSgtin(d.sgtin) ? stickerSvg(d) : "";
     $("eStBox").hidden = !svg;
+    const st = hasCode(d) || (validKey(d.key) && validSgtin(d.sgtin)) ? ["ok", "Original-Code vorhanden (mit Key) – reicht auch für das Offline-Anlernen."]
+      : validSgtin(d.sgtin) ? ["warn", "Nur Online-Code: Der Original-Aufkleber ist noch nicht gescannt. Der erzeugte Aufkleber reicht für das Anlernen mit Internet."]
+      : ["warn", "Keine Seriennummer erfasst – Original-Aufkleber scannen oder unter „Technik“ eintragen."];
+    $("eCode").innerHTML = `<div class="msg ${st[0]}">${esc(st[1])}</div>`;
     $("eSticker").innerHTML = $("eStWrap").hidden ? "" : svg;
     if (!svg) $("eStWrap").hidden = true;
   }
 
   function openEdit(d, msg) {
     cur = d;
-    $("eTitle").textContent = d.isNew ? "Neues Gerät" : "Gerät bearbeiten";
+    $("eTitle").textContent = d.isNew ? "Neues Gerät" : d.name || d.type || "Gerät";
     $("eSgtin").value = d.sgtin; setLast4(d.sgtin);
     $("eKey").value = d.key || ""; $("eKey").type = "password"; $("eKeyShow").textContent = "anzeigen";
     $("eRaw").value = d.raw || ""; $("eRawWrap").hidden = !d.raw;
@@ -1038,6 +1126,7 @@ function init(host) {
     $("eStWrap").hidden = true; $("eStToggle").textContent = "Aufkleber anzeigen";
     updateSticker();
     $("eDel").style.display = d.isNew ? "none" : "";
+    $("eTech").open = !!(d.isNew || d.raw || !validSgtin(d.sgtin));
     showMsg(msg);
     $("dEdit").showModal();
   }
@@ -1101,6 +1190,7 @@ function init(host) {
     } catch (err) { alert("Speichern fehlgeschlagen: " + errText(err)); }
   });
   $("eCancel").onclick = () => { $("dEdit").close(); cur = null; };
+  $("eScanHere").onclick = () => { $("dEdit").close(); cur = null; startScan(); };
   $("eDel").onclick = async () => {
     if (!cur || !confirm("Gerät wirklich löschen?")) return;
     try { await dbDel(cur.id); devices = await dbAll(); render(); $("dEdit").close(); cur = null; toast("Gelöscht"); }
@@ -1108,7 +1198,6 @@ function init(host) {
   };
   $("list").addEventListener("click", (e) => {
     const it = e.target.closest(".item"); if (!it) return;
-    if (selMode) { const id = it.dataset.id; picked.has(id) ? picked.delete(id) : picked.add(id); render(); return; }
     const d = devices.find((x) => x.id === it.dataset.id); if (d) openEdit({ ...d });
   });
   $("q").addEventListener("input", render); $("fStatus").addEventListener("change", render);
@@ -1117,14 +1206,28 @@ function init(host) {
   $("fRooms").addEventListener("change", chkHandler(fRooms)); $("fTypes").addEventListener("change", chkHandler(fTypes)); $("fCats").addEventListener("change", chkHandler(fCats));
   $("fReset").onclick = () => { fRooms.clear(); fTypes.clear(); fCats.clear(); $("fStatus").value = ""; fillFilterDialog(); render(); };
   $("fDone").onclick = () => $("dFilter").close();
-  $("bSelect").onclick = () => { selMode = !selMode; render(); };
-  try { if (localStorage.getItem("hmipHelpClosed") === "1") $("help").open = false; } catch (e) { /* kein Speicher */ }
-  $("help").addEventListener("toggle", () => { try { localStorage.setItem("hmipHelpClosed", $("help").open ? "0" : "1"); } catch (e) { /* kein Speicher */ } });
+  /* Gliederung, Gruppen, Fortschritt, Erklärung */
+  $("gBy").value = store.get("hmipGroupBy", "room"); if (!$("gBy").value) $("gBy").value = "room";
+  $("gBy").onchange = () => { store.set("hmipGroupBy", $("gBy").value); render(); };
+  $("list").addEventListener("click", (e) => {
+    const g = e.target.closest(".grp"); if (!g) return;
+    const k = g.dataset.g; closedGroups.has(k) ? closedGroups.delete(k) : closedGroups.add(k);
+    store.set("hmipClosed", JSON.stringify([...closedGroups])); render();
+  });
+  $("prog").addEventListener("click", (e) => { if (e.target.closest("#bExplain")) return; $("fStatus").value = "missing"; render(); });
+  const openExplain = () => $("dExplain").showModal();
+  $("bExplain").onclick = openExplain; $("mExplain").onclick = openExplain; $("xClose").onclick = () => $("dExplain").close();
+  /* Reiter */
+  async function showView(v) {
+    for (const [id, name] of [["vList", "list"], ["vPrint", "print"], ["vMore", "more"]]) $(id).hidden = v !== name;
+    root.querySelectorAll(".tabs button").forEach((b) => b.classList.toggle("on", b.dataset.v === v));
+    if (v === "print") { await loadLayouts(); fillPrint(); }
+    host.scrollTop = 0;
+  }
+  root.querySelector(".tabs").addEventListener("click", (e) => { const b = e.target.closest("button[data-v]"); if (b) showView(b.dataset.v); });
   $("fInfo").addEventListener("click", (e) => {
     const a = e.target.closest("button[data-a]"); if (!a) return;
     if (a.dataset.a === "clearF") { fRooms.clear(); fTypes.clear(); fCats.clear(); $("fStatus").value = ""; $("q").value = ""; }
-    if (a.dataset.a === "all") filtered().forEach((d) => picked.add(d.id));
-    if (a.dataset.a === "none") picked.clear();
     if (a.dataset.a === "showChg") $("fStatus").value = "srcchg";
     if (a.dataset.a === "showGone") $("fStatus").value = "gone";
     if (a.dataset.a === "takeAll") { takeAll(); return; }
@@ -1135,7 +1238,7 @@ function init(host) {
   $("bScan").onclick = startScan;
   $("scanClose").onclick = stopScan;
   $("dScan").addEventListener("cancel", stopScan);
-  $("bPhoto").onclick = () => $("filePhoto").click();
+  $("bPhoto").onclick = () => { stopScan(); $("filePhoto").click(); };
   $("bManual").onclick = () => openEdit(newDev());
   $("filePhoto").addEventListener("change", async (e) => {
     const f = e.target.files[0]; e.target.value = ""; if (!f) return;
@@ -1191,32 +1294,28 @@ function init(host) {
       devices = await dbAll(); render(); toast(`${n} Geräte importiert`);
     } catch (e) { alert("Import fehlgeschlagen: " + errText(e)); }
   }
-  $("bMenu").onclick = () => $("dMenu").showModal();
-  $("mClose").onclick = () => $("dMenu").close();
   $("mHa").onclick = async () => {
     $("mHa").disabled = true;
     try {
       const r = await ws({ type: "hmip_geraete/import_ha" });
-      devices = await dbAll(); render(); $("dMenu").close();
+      devices = await dbAll(); render();
       toast(importText(r));
     } catch (e) { alert("Übernahme fehlgeschlagen: " + errText(e)); }
     $("mHa").disabled = false;
   };
-  $("mPrint").onclick = async () => { $("dMenu").close(); await loadLayouts(); fillPrint(); $("dPrint").showModal(); };
   $("pTpl").onchange = fillPrint; $("pKind").onchange = fillPrint;
   $("pSecs").addEventListener("change", (e) => { const c = e.target.closest("input[data-k]"); if (!c) return; c.checked ? pSel.keys.add(c.dataset.k) : pSel.keys.delete(c.dataset.k); });
   $("pAll").onclick = () => { pSel.keys = new Set(sections($("pTpl").value).map((x) => x.key)); fillPrint(); };
   $("pNone").onclick = () => { pSel.keys.clear(); fillPrint(); };
   $("pPdf").onclick = () => { const r = printSet(); if (!r.pages.length) { toast("Keine Bögen ausgewählt"); return; } outputPdf(r.pages, r.name); };
   $("pPrint").onclick = () => { const r = printSet(); if (!r.pages.length) { toast("Keine Bögen ausgewählt"); return; } printPages(r.pages); };
-  $("pClose").onclick = () => $("dPrint").close();
-  $("mHelp").onclick = () => { $("dMenu").close(); $("dHelp").showModal(); };
+  $("mHelp").onclick = () => $("dHelp").showModal();
   $("hClose").onclick = () => $("dHelp").close();
   root.querySelectorAll(".vno").forEach((e) => (e.textContent = cfg.version || "unbekannt"));
   /* Passwort ändern und Abmelden gibt es nur, wenn die Umgebung es anbietet (HCU-Plugin) */
   if (cfg.changePassword) {
-    $("mPw").hidden = false; $("mLogout").hidden = false;
-    $("mPw").onclick = () => { $("dMenu").close(); $("pwOld").value = $("pwNew").value = $("pwNew2").value = ""; $("pwMsg").innerHTML = ""; $("dPw").showModal(); };
+    $("mAcc").hidden = false;
+    $("mPw").onclick = () => { $("pwOld").value = $("pwNew").value = $("pwNew2").value = ""; $("pwMsg").innerHTML = ""; $("dPw").showModal(); };
     $("pwCancel").onclick = () => $("dPw").close();
     $("fPw").addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -1224,12 +1323,12 @@ function init(host) {
       try { await cfg.changePassword($("pwOld").value, $("pwNew").value); $("dPw").close(); toast("Passwort geändert"); }
       catch (err) { $("pwMsg").innerHTML = `<div class="msg warn">${esc(errText(err))}</div>`; }
     });
-    $("mLogout").onclick = () => { $("dMenu").close(); if (cfg.logout) cfg.logout(); };
+    $("mLogout").onclick = () => { if (cfg.logout) cfg.logout(); };
   }
-  $("mCsv").onclick = () => { exportCsv(); $("dMenu").close(); };
-  $("mJson").onclick = () => { exportJson(); $("dMenu").close(); };
+  $("mCsv").onclick = () => exportCsv();
+  $("mJson").onclick = () => exportJson();
   $("mImport").onclick = () => $("fileImport").click();
-  $("fileImport").addEventListener("change", (e) => { const f = e.target.files[0]; e.target.value = ""; if (f) { importJson(f); $("dMenu").close(); } });
+  $("fileImport").addEventListener("change", (e) => { const f = e.target.files[0]; e.target.value = ""; if (f) importJson(f); });
 
   function importText(r) {
     const p = [`${r.added} neu`, `${r.updated} aktualisiert`];

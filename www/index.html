@@ -52,7 +52,7 @@ function showPanel() {
   const el = document.createElement("hmip-geraete-panel");
   el.cfg = { source: "der HCU", version: appVersion,
     storageNote: "Die Daten liegen im Plugin-Ordner der HCU (/data) und bleiben bei Updates erhalten. Der Zugriff ist durch ein Passwort geschützt.",
-    helpExtra: "<b>Passwort</b><p>Ändern über Menü → „Passwort ändern“. Vergessen? In HCUweb beim Plugin die Einstellungen öffnen, „Passwort der Weboberfläche zurücksetzen“ einschalten und speichern; danach hier ein neues Passwort festlegen. Die Gerätedaten bleiben erhalten.</p>",
+    helpExtra: "<b>Passwort</b><p>Ändern über „Mehr“ → „Passwort ändern“. Vergessen? In HCUweb beim Plugin die Einstellungen öffnen, „Passwort der Weboberfläche zurücksetzen“ einschalten und speichern; danach hier ein neues Passwort festlegen. Die Gerätedaten bleiben erhalten.</p>",
     changePassword: async (oldPw, newPw) => { const r = await call("POST", "/api/password", { old: oldPw, password: newPw }); token = r.token; try { sessionStorage.setItem("hmipTok", token); } catch (e) {} },
     logout: async () => { try { await call("POST", "/api/logout", {}); } catch (e) {} try { sessionStorage.removeItem("hmipTok"); } catch (e) {} location.reload(); } };
   document.body.appendChild(el); el.hass = hass;

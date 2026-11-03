@@ -62,7 +62,7 @@ genauso funktioniert wie am PC.
 - **Ausdrucke** als PDF (auf dem Handy teilen/speichern) oder direkt am PC:
   - Vorlagen: **nach Räumen**, **nach Funktion** (Kategorien wie auf
     homematic-ip.com; ein Gerät erscheint in allen seinen Kategorien),
-    **alphabetisch** oder nach **aktuellem Filter/Auswahl**
+    **alphabetisch** oder nach **aktuellem Filter**
   - Inhalt: Dokumentationsbogen (6 Geräte je A4-Seite) oder nur
     QR-Code-Aufkleber
   - Jeder Bogen beginnt auf einer neuen Seite und trägt Bogenname, Stand und
@@ -75,13 +75,16 @@ genauso funktioniert wie am PC.
   Seite für Seite, immer mit dem aktuellen Stand der Geräte.
 - **Filter**: mehrere Räume, Kategorien und Gerätetypen gleichzeitig,
   Aufkleber erfasst/fehlt, „in der HCU geändert“, „nicht mehr in der HCU“,
-  Suche, Handauswahl
+  Suche
+- **Liste gliedern** wahlweise nach Raum, Funktion, Gerätetyp oder
+  alphabetisch ohne Gruppen; Gruppen lassen sich auf- und zuklappen
 - **Änderungen übernehmen**: Wurde ein Gerät in der HCU umbenannt oder in
   einen anderen Raum verschoben, zeigt das Plugin den neuen Wert an –
   einzeln übernehmen, beibehalten oder alle auf einmal übernehmen.
 - **Export**: CSV für Excel (ohne Schlüssel), Backup als JSON (mit
   Schlüsseln), Backup importieren
-- **Anleitung** und **Versionsnummer** im Menü
+- **Einfache Bedienung** mit drei Bereichen unten: **Geräte**, **Drucken**,
+  **Mehr** (Abgleich, Export, Anleitung, Passwort, Versionsnummer)
 
 <img src="docs/beispiel-bogen.png" alt="Beispiel: Dokumentationsbogen für einen Raum" width="420">
 
@@ -108,14 +111,14 @@ genauso funktioniert wie am PC.
 
 ## Bedienung in Kürze
 
-1. **Scannen** antippen und den Original-Aufkleber eines Geräts in die
-   Kamera halten (oder **Foto** wählen). Das Gerät wird erkannt und der Key
+1. **Original-Aufkleber scannen** antippen und den Original-Aufkleber eines Geräts in die
+   Kamera halten (oder **Stattdessen Foto wählen**). Das Gerät wird erkannt und der Key
    gespeichert.
 2. Gerät antippen, **Einbauort** und **Notiz** ergänzen, speichern.
-3. **Menü → Ausdrucke erstellen**: Vorlage wählen, Bögen anhaken, PDF
+3. Unten **Drucken**: Vorlage wählen, Bögen anhaken, PDF
    erstellen oder drucken.
 
-Die ausführliche Anleitung steht im Plugin unter **Menü → Anleitung**.
+Die ausführliche Anleitung steht im Plugin unter **Mehr → Anleitung**.
 
 ## Warum HTTPS und eine Zertifikatswarnung?
 
@@ -127,8 +130,8 @@ trotzdem nicht, funktioniert **Foto** immer.
 
 ## Passwort
 
-- **Ändern**: Menü → „Passwort ändern“
-- **Abmelden**: Menü → „Abmelden“
+- **Ändern**: Mehr → „Passwort ändern“
+- **Abmelden**: Mehr → „Abmelden“
 - **Vergessen**: In HCUweb die Einstellungen des Plugins öffnen,
   **„Passwort der Weboberfläche zurücksetzen“** einschalten und speichern.
   Beim nächsten Aufruf ein neues Passwort festlegen. Die Gerätedaten bleiben
@@ -140,7 +143,7 @@ Nach 5 falschen Versuchen wird die Anmeldung kurz gesperrt.
 
 Neue Version herunterladen und in HCUweb genauso hochladen. Die Daten liegen
 im dauerhaften Speicher des Plugins (`/data`) und bleiben erhalten. Vor einem
-Update empfiehlt sich trotzdem ein **Backup (JSON)** aus dem Menü.
+Update empfiehlt sich trotzdem ein **Backup (JSON)** unter **Mehr**.
 
 ## Sicherheit und Datenschutz
 
