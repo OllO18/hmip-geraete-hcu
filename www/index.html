@@ -41,6 +41,9 @@ const hass = { connection: { sendMessagePromise: async (m) => {
     case "hmip_geraete/save": return call("POST", "/api/save", { device: m.device });
     case "hmip_geraete/delete": return call("POST", "/api/delete", { device_id: m.device_id });
     case "hmip_geraete/import_ha": return call("POST", "/api/import", {});
+    case "hmip_geraete/layouts": return call("GET", "/api/layouts");
+    case "hmip_geraete/layout_save": return call("POST", "/api/layout_save", { layout: m.layout });
+    case "hmip_geraete/layout_delete": return call("POST", "/api/layout_delete", { layout_id: m.layout_id });
   }
   throw { code: "unknown_command", message: "Unbekannter Befehl" };
 } } };

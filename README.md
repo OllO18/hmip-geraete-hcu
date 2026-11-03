@@ -69,6 +69,10 @@ genauso funktioniert wie am PC.
     Seitenzahl. Je Bogen wird angezeigt, wann sich zuletzt eines seiner
     Geräte geändert hat – so druckst du nur nach, was sich geändert hat, und
     tauschst die Seiten im Ordner aus.
+- **Eigene Bögen**: freie Zusammenstellungen, z. B. „Sicherungskasten“ – Geräte
+  einzeln oder mehrere auf einmal in Felder setzen, Felder frei lassen,
+  einfügen, entfernen und verschieben (am PC auch per Ziehen). Gedruckt wird
+  Seite für Seite, immer mit dem aktuellen Stand der Geräte.
 - **Filter**: mehrere Räume, Kategorien und Gerätetypen gleichzeitig,
   Aufkleber erfasst/fehlt, „in der HCU geändert“, „nicht mehr in der HCU“,
   Suche, Handauswahl

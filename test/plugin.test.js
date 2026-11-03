@@ -80,3 +80,11 @@ test("Passwort ändern und zurücksetzen", () => {
   a.reset();
   assert.ok(!a.isSet && !a.check(t2) && !new Auth(dir).isSet);
 });
+
+test("Eigene Bögen speichern", () => {
+  const dir = tmp(), s = new DeviceStore(dir);
+  s.saveLayout({ id: "b1", name: "Sicherungskasten", slots: ["d1", "", null, "../x"] });
+  assert.deepStrictEqual(new DeviceStore(dir).listLayouts()[0].slots, ["d1", "", "", ""]);
+  assert.throws(() => s.saveLayout({ id: "../b", slots: [] }), /Bogen-ID/);
+  s.deleteLayout("b1"); assert.strictEqual(new DeviceStore(dir).listLayouts().length, 0);
+});

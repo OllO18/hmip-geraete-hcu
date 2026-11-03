@@ -256,13 +256,13 @@ function nestSticker(d, x, y, w) {
   return { h, svg: `<svg x="${x}" y="${y}" width="${w}" height="${h.toFixed(1)}" viewBox="0 0 500 ${p.h}">${p.inner}</svg>` };
 }
 const BOX = { x0: 63, dx: 366, y0: 188, dy: 321, w: 335, h: 291 };
-export function docPages(devices, when = "", note = "", title = "") {
+export function docPages(devices, when = "", note = "", title = "", pageNo = 0, pageTotal = 0) {
   const noteLines = wrap(note, 92, 2);
   const total = Math.max(1, Math.ceil(devices.length / 6)), pages = [];
   for (let p = 0; p < total; p++) {
     let s = `<rect width="${PW}" height="94" fill="#0C3358"/>
 <text x="60" y="55" font-size="21" font-weight="bold" fill="#fff">Übersicht der Homematic IP Komponenten</text>
-<text x="767" y="${title ? 44 : 55}" text-anchor="end" font-size="13" fill="#fff">${xml(when ? "Stand " + when + " · " : "")}Seite ${p + 1} von ${total}</text>${title ? `<text x="767" y="68" text-anchor="end" font-size="15" font-weight="bold" fill="#fff">${xml(cut(title, 34))}</text>` : ""}
+<text x="767" y="${title ? 44 : 55}" text-anchor="end" font-size="13" fill="#fff">${xml(when ? "Stand " + when + " · " : "")}Seite ${pageNo || p + 1} von ${pageTotal || total}</text>${title ? `<text x="767" y="68" text-anchor="end" font-size="15" font-weight="bold" fill="#fff">${xml(cut(title, 34))}</text>` : ""}
 <text x="63" y="131" font-size="17" fill="#484A4B">Notizen:</text>
 <line x1="140" y1="132" x2="764" y2="132" stroke="#555" stroke-width="1"/><line x1="140" y1="160" x2="764" y2="160" stroke="#555" stroke-width="1"/>
 ${noteLines.map((l, k) => `<text x="144" y="${127 + k * 28}" font-size="12.5" fill="#0E324C">${xml(l)}</text>`).join("")}`;
@@ -408,6 +408,16 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--cyan);outline-of
 .info ul{margin:4px 0 0 18px;padding:0}.info li{margin:2px 0}
 .ver{display:block;text-align:center;color:var(--mut);margin-top:4px}
 .help b{display:block;margin-top:8px}.help p{margin:2px 0 0;font-size:14.5px}
+.lhead{display:flex;gap:8px}.lhead>*{flex:1 1 0;min-width:0}.lhead select,.lhead input{background:#fff}
+#lPages{display:flex;flex-direction:column;gap:12px}
+.lpage{background:var(--bg);border-radius:16px;padding:8px}.lpage h3{margin:2px 4px 6px;font-size:14px;color:var(--mut)}
+.lgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.slot{min-height:78px;background:#fff;border:2px solid var(--line);border-radius:14px;padding:8px;text-align:left;display:block;font-weight:400;cursor:pointer}
+.slot b{display:block;font-size:14px;line-height:1.25}.slot small{color:var(--mut);font-size:12px}
+.slot.free{border-style:dashed;color:var(--mut);display:flex;align-items:center;justify-content:center}
+.slot.sel{border-color:var(--cyan);box-shadow:0 0 0 2px var(--cyan)}.slot.over{background:#E6F7FA}
+.lact{position:sticky;bottom:0;background:#fff;display:flex;flex-wrap:wrap;gap:6px;padding:8px 0 4px;border-top:1px solid var(--line)}
+.lact button{flex:1 1 30%;padding:9px 6px;font-size:13px}
 .row2{display:flex;gap:10px;position:sticky;bottom:0;background:#fff;padding:6px 0 4px}.row2>*{flex:1}
 .chks{display:flex;flex-direction:column;max-height:28vh;overflow:auto;border:1px solid var(--line);border-radius:14px;padding:4px 10px;background:var(--bg)}
 .chk{display:flex;align-items:center;gap:10px;padding:7px 2px;font-size:15px;cursor:pointer}
@@ -552,6 +562,8 @@ small{color:var(--mut)}
   <button class="ghost" id="mJson">Backup (JSON, enthält die Geräteschlüssel)</button>
   <button class="ghost" id="mImport">Backup importieren</button>
   <small>{{STORAGE_NOTE}} Backups aus früheren Versionen lassen sich importieren (Fotos werden nicht mehr übernommen).</small>
+  <button class="ghost" id="mLay">Eigene Bögen zusammenstellen …</button>
+  <small>Freie Dokumentationsbögen: Geräte in beliebige Felder setzen, Felder frei lassen oder einfügen, Reihenfolge ändern. Gedruckt wird über „Ausdrucke erstellen“, Seite für Seite austauschbar.</small>
   <button class="ghost" id="mHelp">Anleitung</button>
   <button class="ghost" id="mPw" hidden>Passwort ändern</button>
   <button class="ghost" id="mLogout" hidden>Abmelden</button>
@@ -561,7 +573,7 @@ small{color:var(--mut)}
 <dialog id="dPrint"><div class="dlg">
   <h2>Ausdrucke</h2>
   <label>Vorlage</label>
-  <select id="pTpl"><option value="room">Nach Räumen (je Raum ein Bogen)</option><option value="func">Nach Funktion (je Kategorie ein Bogen; Geräte in allen ihren Kategorien)</option><option value="alpha">Alphabetisch (je Anfangsbuchstabe ein Bogen)</option><option value="sel">Aktueller Filter bzw. Auswahl (ein Bogen)</option></select>
+  <select id="pTpl"><option value="room">Nach Räumen (je Raum ein Bogen)</option><option value="func">Nach Funktion (je Kategorie ein Bogen; Geräte in allen ihren Kategorien)</option><option value="alpha">Alphabetisch (je Anfangsbuchstabe ein Bogen)</option><option value="sel">Aktueller Filter bzw. Auswahl (ein Bogen)</option><option value="own">Eigene Bögen (je Seite auswählbar)</option></select>
   <label>Inhalt</label>
   <select id="pKind"><option value="doc">Dokumentationsbogen (6 Geräte je Seite)</option><option value="stk">Nur QR-Code-Aufkleber</option></select>
   <label>Bögen <small>(nur angehakte werden gedruckt)</small></label>
@@ -571,6 +583,35 @@ small{color:var(--mut)}
   <div class="row2"><button type="button" class="ghost" id="pPrint">Drucken (PC)</button><button type="button" class="pri" id="pPdf">PDF erstellen</button></div>
   <button type="button" class="ghost" id="pClose">Schließen</button>
 </div></dialog>
+<dialog id="dLay"><div class="dlg">
+  <h2>Eigene Bögen</h2>
+  <div class="lhead"><select id="lSel"></select><button type="button" class="ghost" id="lNew">Neu</button></div>
+  <div class="lhead"><button type="button" class="ghost" id="lRen">Umbenennen</button><button type="button" class="ghost" id="lDel">Löschen</button></div>
+  <small id="lHint">Feld antippen, dann unten eine Aktion wählen. Am PC lassen sich Felder auch per Ziehen tauschen.</small>
+  <div id="lPages"></div>
+  <div class="lact">
+    <button type="button" class="pri" id="lPick">Gerät einsetzen</button>
+    <button type="button" class="ghost" id="lMulti">Mehrere einfügen</button>
+    <button type="button" class="ghost" id="lClear">Feld leeren</button>
+    <button type="button" class="ghost" id="lIns">Feld einfügen</button>
+    <button type="button" class="ghost" id="lRem">Feld entfernen</button>
+    <button type="button" class="ghost" id="lLeft">◀ nach vorn</button>
+    <button type="button" class="ghost" id="lRight">nach hinten ▶</button>
+    <button type="button" class="ghost" id="lAddPage">Seite anhängen</button>
+    <button type="button" class="ghost" id="lClose">Schließen</button>
+  </div>
+</div></dialog>
+<dialog id="dName"><form class="dlg" id="fName" method="dialog">
+  <h2 id="nTitle">Name</h2>
+  <input id="nVal" maxlength="100">
+  <div class="row2"><button type="button" class="ghost" id="nCancel">Abbrechen</button><button type="submit" class="pri">OK</button></div>
+</form></dialog>
+<dialog id="dPick"><div class="dlg">
+  <h2 id="pkTitle">Gerät wählen</h2>
+  <div class="lhead"><input id="pkQ" type="search" placeholder="Suchen …"><select id="pkRoom"></select></div>
+  <div class="chks" id="pkList" style="max-height:50vh"></div>
+  <div class="row2"><button type="button" class="ghost" id="pkCancel">Abbrechen</button><button type="button" class="pri" id="pkOk">Einfügen</button></div>
+</div></dialog>
 <dialog id="dHelp"><div class="dlg">
   <h2>Anleitung</h2>
   <div class="help">
@@ -578,6 +619,7 @@ small{color:var(--mut)}
   <b>2. Original-Aufkleber scannen</b><p>„Scannen“ öffnet die Kamera, „Foto“ liest ein Bild aus. Der Code wird dem Gerät mit derselben Seriennummer zugeordnet; so wird der Geräteschlüssel (Key) gespeichert. Ohne Key erzeugt die App einen Online-Code (siehe Erklärung oben auf der Seite).</p>
   <b>3. Ergänzen</b><p>Gerät antippen: Einbauort und Notiz eintragen, speichern.</p>
   <b>4. Ausdrucken</b><p>Menü → „Ausdrucke erstellen“: Vorlage wählen (Räume, Funktion, Alphabet), Bögen anhaken, als PDF speichern oder am PC drucken. Ändert sich später etwas, nur den betroffenen Bogen neu drucken und austauschen.</p>
+  <b>Eigene Bögen</b><p>Menü → „Eigene Bögen zusammenstellen“: Bogen anlegen, Feld antippen und „Gerät einsetzen“ oder „Mehrere einfügen“. Felder lassen sich leeren (bleiben beim Druck frei), einfügen, entfernen und verschieben; am PC auch per Ziehen. Gedruckt wird über „Ausdrucke erstellen“ → Vorlage „Eigene Bögen“, Seite für Seite.</p>
   <b>5. Änderungen</b><p>Werden Geräte in {{SRC}} umbenannt, verschoben oder entfernt, markiert die Liste sie. Im Gerät „Übernehmen“ oder „Beibehalten“ wählen.</p>
   <b>6. Sichern</b><p>Menü → „Backup (JSON)“ sichert alles inklusive Geräteschlüsseln. Bögen und Backups enthalten die Schlüssel – sicher aufbewahren.</p>
   {{HELP_EXTRA}}
@@ -794,6 +836,100 @@ function init(host) {
     return { list: l, note: f ? `Filter: ${f} (${l.length} ${l.length === 1 ? "Gerät" : "Geräte"})` : `Alle Geräte (${l.length})` };
   }
 
+  /* ---------- Eigene Bögen (Editor) ---------- */
+  let layouts = [], lay = null, lSel = 0, pickMode = "one";
+  const loadLayouts = async () => { try { layouts = await ws({ type: "hmip_geraete/layouts" }); } catch (e) { layouts = []; } return layouts; };
+  const devById = (id) => devices.find((d) => d.id === id);
+  const padSlots = (sl) => { while (sl.length % 6 || !sl.length) sl.push(""); return sl; };
+  async function saveLay() {
+    try { await ws({ type: "hmip_geraete/layout_save", layout: { id: lay.id, name: lay.name, slots: lay.slots } }); }
+    catch (e) { alert("Speichern fehlgeschlagen: " + errText(e)); }
+  }
+  function drawLay() {
+    $("lSel").innerHTML = layouts.map((l) => `<option value="${esc(l.id)}"${lay && l.id === lay.id ? " selected" : ""}>${esc(l.name)}</option>`).join("") || "<option>(noch kein Bogen)</option>";
+    const has = !!lay;
+    ["lRen", "lDel", "lPick", "lMulti", "lClear", "lIns", "lRem", "lLeft", "lRight", "lAddPage"].forEach((id) => ($(id).disabled = !has));
+    if (!has) { $("lPages").innerHTML = '<div class="empty">Mit „Neu“ einen Bogen anlegen, z. B. „Sicherungskasten“.</div>'; return; }
+    padSlots(lay.slots); if (lSel >= lay.slots.length) lSel = lay.slots.length - 1;
+    let h = "";
+    for (let p = 0; p < lay.slots.length / 6; p++) {
+      h += `<div class="lpage"><h3>Seite ${p + 1} von ${lay.slots.length / 6}</h3><div class="lgrid">`;
+      for (let i = p * 6; i < p * 6 + 6; i++) {
+        const id = lay.slots[i], d = id && devById(id);
+        h += id ? `<button type="button" draggable="true" class="slot${i === lSel ? " sel" : ""}" data-i="${i}"><b>${esc(d ? d.name || d.type || "(ohne Name)" : "(Gerät gelöscht)")}</b><small>${esc(d ? [d.room, typeName(d.type) || d.type].filter(Boolean).join(" · ") : "wird leer gedruckt")}</small></button>`
+          : `<button type="button" draggable="true" class="slot free${i === lSel ? " sel" : ""}" data-i="${i}">frei</button>`;
+      }
+      h += "</div></div>";
+    }
+    $("lPages").innerHTML = h;
+  }
+  /* Eingabe ohne prompt(), das nicht in jedem WebView funktioniert */
+  function askName(title, def) {
+    return new Promise((res) => {
+      $("nTitle").textContent = title; $("nVal").value = def || "";
+      const done = (v) => { $("fName").onsubmit = null; $("nCancel").onclick = null; $("dName").close(); res(v); };
+      $("fName").onsubmit = (e) => { e.preventDefault(); done($("nVal").value.trim()); };
+      $("nCancel").onclick = () => done("");
+      $("dName").showModal(); $("nVal").focus(); $("nVal").select();
+    });
+  }
+  const layOp = async (fn) => { if (!lay) return; fn(lay.slots); padSlots(lay.slots); drawLay(); await saveLay(); };
+  $("mLay").onclick = async () => { $("dMenu").close(); await loadLayouts(); lay = layouts[0] ? { ...layouts[0], slots: [...layouts[0].slots] } : null; lSel = 0; drawLay(); $("dLay").showModal(); };
+  $("lClose").onclick = () => $("dLay").close();
+  $("lSel").onchange = () => { const l = layouts.find((x) => x.id === $("lSel").value); if (l) { lay = { ...l, slots: [...l.slots] }; lSel = 0; drawLay(); } };
+  $("lNew").onclick = async () => {
+    const name = await askName("Name des neuen Bogens", "Eigener Bogen"); if (!name) return;
+    lay = { id: "lay" + uid(), name: name.trim().slice(0, 100), slots: padSlots([]) }; lSel = 0;
+    await saveLay(); await loadLayouts(); drawLay();
+  };
+  $("lRen").onclick = async () => { const n = await askName("Bogen umbenennen", lay.name); if (!n) return; lay.name = n.trim().slice(0, 100); await saveLay(); await loadLayouts(); drawLay(); };
+  $("lDel").onclick = async () => {
+    if (!confirm(`Bogen „${lay.name}“ löschen? Die Geräte selbst bleiben erhalten.`)) return;
+    try { await ws({ type: "hmip_geraete/layout_delete", layout_id: lay.id }); } catch (e) { alert(errText(e)); return; }
+    await loadLayouts(); lay = layouts[0] ? { ...layouts[0], slots: [...layouts[0].slots] } : null; lSel = 0; drawLay();
+  };
+  $("lPages").addEventListener("click", (e) => { const b = e.target.closest(".slot"); if (!b) return; lSel = +b.dataset.i; drawLay(); });
+  /* Ziehen am PC: Feld auf Feld tauscht die beiden */
+  let dragFrom = -1;
+  $("lPages").addEventListener("dragstart", (e) => { const b = e.target.closest(".slot"); if (!b) return; dragFrom = +b.dataset.i; e.dataTransfer.effectAllowed = "move"; try { e.dataTransfer.setData("text/plain", String(dragFrom)); } catch (err) { /* ok */ } });
+  $("lPages").addEventListener("dragover", (e) => { const b = e.target.closest(".slot"); if (!b || dragFrom < 0) return; e.preventDefault(); b.classList.add("over"); });
+  $("lPages").addEventListener("dragleave", (e) => { const b = e.target.closest(".slot"); if (b) b.classList.remove("over"); });
+  $("lPages").addEventListener("drop", (e) => {
+    const b = e.target.closest(".slot"); if (!b || dragFrom < 0) return; e.preventDefault();
+    const to = +b.dataset.i, from = dragFrom; dragFrom = -1; if (to === from) return;
+    lSel = to; layOp((sl) => { [sl[from], sl[to]] = [sl[to], sl[from]]; });
+  });
+  $("lPages").addEventListener("dragend", () => { dragFrom = -1; });
+  $("lClear").onclick = () => layOp((sl) => { sl[lSel] = ""; });
+  $("lIns").onclick = () => layOp((sl) => { sl.splice(lSel, 0, ""); });
+  $("lRem").onclick = () => layOp((sl) => { sl.splice(lSel, 1); });
+  $("lLeft").onclick = () => { if (lSel > 0) { const i = lSel; lSel--; layOp((sl) => { [sl[i - 1], sl[i]] = [sl[i], sl[i - 1]]; }); } };
+  $("lRight").onclick = () => { const i = lSel; if (i < lay.slots.length - 1) { lSel++; layOp((sl) => { [sl[i + 1], sl[i]] = [sl[i], sl[i + 1]]; }); } };
+  $("lAddPage").onclick = () => { layOp((sl) => { for (let k = 0; k < 6; k++) sl.push(""); }); };
+  /* Geräte auswählen: einzeln (ersetzt das gewählte Feld) oder mehrere (füllen freie Felder ab dem gewählten) */
+  function fillPick() {
+    const q = $("pkQ").value.trim().toLowerCase(), r = $("pkRoom").value;
+    const inLay = new Set(lay ? lay.slots.filter(Boolean) : []);
+    const list = devices.filter((d) => (!r || (d.room || "") === r) && (!q || [d.name, d.type, typeName(d.type), d.room, d.loc].join(" ").toLowerCase().includes(q))).sort(byRoom);
+    $("pkList").innerHTML = list.map((d) => `<label class="chk"><input type="${pickMode === "one" ? "radio" : "checkbox"}" name="pk" value="${esc(d.id)}"><span>${esc(d.name || d.type || "(ohne Name)")}<br><small class="code">${esc([d.room, typeName(d.type) || d.type].filter(Boolean).join(" · "))}${inLay.has(d.id) ? " · schon auf diesem Bogen" : ""}</small></span></label>`).join("") || "<small>Keine Treffer</small>";
+  }
+  function openPick(mode) {
+    pickMode = mode; $("pkTitle").textContent = mode === "one" ? "Gerät für dieses Feld" : "Geräte einfügen (in freie Felder ab dem gewählten)";
+    const rooms = [...new Set(devices.map((d) => d.room).filter(Boolean))].sort((a, b) => a.localeCompare(b, "de"));
+    $("pkRoom").innerHTML = '<option value="">Alle Räume</option>' + rooms.map((x) => `<option>${esc(x)}</option>`).join("");
+    $("pkQ").value = ""; fillPick(); $("dPick").showModal();
+  }
+  $("lPick").onclick = () => openPick("one");
+  $("lMulti").onclick = () => openPick("multi");
+  $("pkQ").addEventListener("input", fillPick); $("pkRoom").onchange = fillPick;
+  $("pkCancel").onclick = () => $("dPick").close();
+  $("pkOk").onclick = () => {
+    const ids = [...$("pkList").querySelectorAll("input:checked")].map((c) => c.value);
+    $("dPick").close(); if (!ids.length) return;
+    if (pickMode === "one") layOp((sl) => { sl[lSel] = ids[0]; });
+    else layOp((sl) => { let i = lSel; for (const id of ids) { while (i < sl.length && sl[i]) i++; if (i >= sl.length) for (let k = 0; k < 6; k++) sl.push(""); sl[i++] = id; } });
+  };
+
   /* ---------- Druckvorlagen: Bögen (Abschnitte), die jeweils auf einer neuen Seite beginnen ---------- */
   const TPL_NAMES = { room: "Nach Räumen", func: "Nach Funktion", alpha: "Alphabetisch", sel: "Filter/Auswahl" };
   /* Funktions-Bögen: nach Gerät (Bezeichnung bzw. Kürzel), dann Name */
@@ -803,6 +939,15 @@ function init(host) {
   function sections(tpl) {
     const map = new Map(), add = (k, d) => { if (!map.has(k)) map.set(k, []); map.get(k).push(d); };
     if (tpl === "sel") { const s = sheetSet(); return [{ key: "sel", title: "Auswahl", note: s.note, list: s.list }]; }
+    if (tpl === "own") {
+      const out = [];
+      for (const l of layouts) {
+        const n = Math.max(1, Math.ceil(l.slots.length / 6));
+        for (let p = 0; p < n; p++) out.push({ key: l.id + ":" + p, title: l.name, label: `${l.name} – Seite ${p + 1} von ${n}`, page: p + 1, pages: n,
+          note: `Eigener Bogen: ${l.name}`, list: padSlots(l.slots.slice(p * 6, p * 6 + 6)).map((id) => (id && devById(id)) || null) });
+      }
+      return out;
+    }
     for (const d of devices) {
       if (tpl === "room") add(d.room || "(ohne Raum)", d);
       else if (tpl === "func") { const c = typeCategories(d.type); (c.length ? c : ["(ohne Kategorie)"]).forEach((k) => add(k, d)); } // in allen Kategorien laut Homepage
@@ -818,23 +963,27 @@ function init(host) {
   const fmtDate = (iso) => { const t = Date.parse(iso); return isNaN(t) ? "–" : new Date(t).toLocaleDateString("de-DE"); };
   let pSel = null;
   function fillPrint() {
-    const tpl = $("pTpl").value, kind = $("pKind").value, secs = sections(tpl);
+    const tpl = $("pTpl").value; if (tpl === "own") $("pKind").value = "doc";
+    $("pKind").disabled = tpl === "own";
+    const kind = $("pKind").value, secs = sections(tpl);
     if (!pSel || pSel.tpl !== tpl) pSel = { tpl, keys: new Set(secs.map((x) => x.key)) };
     $("pSecs").innerHTML = secs.map((x) => {
+      if (x.page) { const real = x.list.filter(Boolean); return `<label class="chk"><input type="checkbox" data-k="${esc(x.key)}"${pSel.keys.has(x.key) ? " checked" : ""}><span>${esc(x.label)}<br><small class="code">${real.length} ${real.length === 1 ? "Gerät" : "Geräte"} · zuletzt geändert ${fmtDate(lastChange(real))}</small></span></label>`; }
       const n = kind === "doc" ? x.list.length : x.list.filter((d) => stickerContent(d)).length;
       const pages = kind === "doc" ? Math.max(1, Math.ceil(x.list.length / 6)) : stickerPages(x.list.filter((d) => stickerContent(d))).length;
       return `<label class="chk"><input type="checkbox" data-k="${esc(x.key)}"${pSel.keys.has(x.key) ? " checked" : ""}><span>${esc(x.title)}<br><small class="code">${n} ${n === 1 ? "Gerät" : "Geräte"} · ${pages} ${pages === 1 ? "Seite" : "Seiten"} · zuletzt geändert ${fmtDate(lastChange(x.list))}</small></span></label>`;
-    }).join("") || "<small>Keine Geräte</small>";
+    }).join("") || (tpl === "own" ? "<small>Noch keine eigenen Bögen – Menü → „Eigene Bögen zusammenstellen“.</small>" : "<small>Keine Geräte</small>");
   }
   function printSet() {
     const tpl = $("pTpl").value, kind = $("pKind").value, when = today();
     const secs = sections(tpl).filter((x) => pSel && pSel.keys.has(x.key));
     const pages = [];
     for (const x of secs) {
-      if (kind === "doc") pages.push(...docPages(x.list, when, x.note, x.title));
+      if (x.page) pages.push(...docPages(x.list, when, x.note, x.title, x.page, x.pages));
+      else if (kind === "doc") pages.push(...docPages(x.list, when, x.note, x.title));
       else { const l = x.list.filter((d) => stickerContent(d)); if (l.length) pages.push(...stickerPages(l, x.title, when)); }
     }
-    const name = (kind === "doc" ? "dokumentationsbogen" : "qr-code-aufkleber") + "-" + ({ room: "raeume", func: "funktion", alpha: "alphabetisch", sel: "auswahl" }[tpl]) + (secs.length === 1 && tpl !== "sel" ? "-" + secs[0].key.toLowerCase().replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") : "") + ".pdf";
+    const name = (kind === "doc" ? "dokumentationsbogen" : "qr-code-aufkleber") + "-" + ({ room: "raeume", func: "funktion", alpha: "alphabetisch", sel: "auswahl", own: "eigene-boegen" }[tpl]) + (secs.length === 1 && tpl !== "sel" && tpl !== "own" ? "-" + secs[0].key.toLowerCase().replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") : "") + ".pdf";
     return { pages, name };
   }
 
@@ -1053,7 +1202,7 @@ function init(host) {
     } catch (e) { alert("Übernahme fehlgeschlagen: " + errText(e)); }
     $("mHa").disabled = false;
   };
-  $("mPrint").onclick = () => { $("dMenu").close(); fillPrint(); $("dPrint").showModal(); };
+  $("mPrint").onclick = async () => { $("dMenu").close(); await loadLayouts(); fillPrint(); $("dPrint").showModal(); };
   $("pTpl").onchange = fillPrint; $("pKind").onchange = fillPrint;
   $("pSecs").addEventListener("change", (e) => { const c = e.target.closest("input[data-k]"); if (!c) return; c.checked ? pSel.keys.add(c.dataset.k) : pSel.keys.delete(c.dataset.k); });
   $("pAll").onclick = () => { pSel.keys = new Set(sections($("pTpl").value).map((x) => x.key)); fillPrint(); };
