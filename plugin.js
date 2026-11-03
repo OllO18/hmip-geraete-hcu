@@ -1,5 +1,5 @@
 "use strict";
-/* HmIP Geräteverwaltung – Plugin für die Homematic IP Home Control Unit (Connect API).
+/* HmIP Gerätedokumentation – Plugin für die Homematic IP Home Control Unit (Connect API).
    Aufruf: node plugin.js <pluginId> <host> <tokenDatei>   (im Container: host.containers.internal und /TOKEN) */
 const WebSocket = require("ws");
 const crypto = require("crypto");

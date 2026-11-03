@@ -1,4 +1,4 @@
-# HmIP Geräteverwaltung – Plugin für die Homematic IP Home Control Unit
+# HmIP Gerätedokumentation – Plugin für die Homematic IP Home Control Unit
 
 <img src="docs/icon.png" alt="" width="96" align="right">
 
@@ -97,7 +97,7 @@ genauso funktioniert wie am PC.
 ## Installation
 
 1. Unter [Releases](../../releases) die neueste Datei
-   `hmip-geraeteverwaltung-<version>.tar.gz` herunterladen. **Nicht entpacken.**
+   `hmip-geraetedokumentation-<version>.tar.gz` herunterladen. **Nicht entpacken.**
 2. HCUweb im Browser öffnen, zur **Plugin-Seite** gehen und die Datei
    hochladen. Die Installation startet automatisch.
 3. Auf der Einstellungsseite des Plugins in HCUweb stehen **„Weboberfläche
@@ -141,7 +141,7 @@ Nach 5 falschen Versuchen wird die Anmeldung kurz gesperrt.
 
 ## Updates
 
-Neue Version herunterladen und in HCUweb genauso hochladen. Die Daten liegen
+Neue Version herunterladen und in HCUweb genauso hochladen. (Bis Version 0.12.1 hieß das Plugin „HmIP Geräteverwaltung“; die interne Plugin-ID `de.ollo18.hmip.geraeteverwaltung` bleibt unverändert, damit ein Update die vorhandenen Daten übernimmt.) Die Daten liegen
 im dauerhaften Speicher des Plugins (`/data`) und bleiben erhalten. Vor einem
 Update empfiehlt sich trotzdem ein **Backup (JSON)** unter **Mehr**.
 

@@ -1,4 +1,4 @@
-/* HmIP Geräteverwaltung – Home-Assistant-Panel (Web Component).
+/* HmIP Gerätedokumentation – Home-Assistant-Panel (Web Component).
    QR-Codes erzeugt die MIT-lizenzierte Bibliothek qrcode-generator (Kazuhiko Arase), siehe qrcode.mjs. */
 import qrcode from "./qrcode.mjs";
 import jsQR from "./jsqr.mjs";
@@ -755,7 +755,7 @@ details.tech[open] summary{margin-bottom:6px}
     <button class="ghost" id="mPw">Passwort ändern</button>
     <button class="ghost" id="mLogout">Abmelden</button>
   </div>
-  <small class="ver">HmIP Geräteverwaltung · Version <span class="vno"></span></small>
+  <small class="ver">HmIP Gerätedokumentation · Version <span class="vno"></span></small>
 </section>
 </main>
 <nav class="tabs">

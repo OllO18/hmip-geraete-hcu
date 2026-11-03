@@ -21,7 +21,7 @@ hmip-geraete-panel{display:block;height:100vh}
   <input id="pw" type="password" autocomplete="current-password" placeholder="Passwort">
   <input id="pw2" type="password" autocomplete="new-password" placeholder="Passwort wiederholen" hidden>
   <button id="go">Weiter</button><div id="err"></div>
-  <p id="forgot" style="margin-top:12px;font-size:13px" hidden>Passwort vergessen? In HCUweb beim Plugin „HmIP Geräteverwaltung“ die Einstellungen öffnen und „Passwort der Weboberfläche zurücksetzen“ einschalten.</p>
+  <p id="forgot" style="margin-top:12px;font-size:13px" hidden>Passwort vergessen? In HCUweb beim Plugin „HmIP Gerätedokumentation“ die Einstellungen öffnen und „Passwort der Weboberfläche zurücksetzen“ einschalten.</p>
   <p id="lver" style="margin:8px 0 0;font-size:12px;text-align:center"></p>
 </div>
 <script type="module">
@@ -63,7 +63,7 @@ async function main() {
   if (token && !setup) { try { await call("GET", "/api/list"); return showPanel(); } catch (e) { token = ""; } }
   $("login").hidden = false;
   $("lt").textContent = setup ? "Passwort festlegen" : "Anmelden";
-  $("lp").textContent = setup ? "Die Geräteschlüssel sind vertraulich. Lege ein Passwort (mindestens 8 Zeichen) für diese Seite fest." : "HmIP Geräteverwaltung";
+  $("lp").textContent = setup ? "Die Geräteschlüssel sind vertraulich. Lege ein Passwort (mindestens 8 Zeichen) für diese Seite fest." : "HmIP Gerätedokumentation";
   $("pw2").hidden = !setup; $("forgot").hidden = setup; $("lver").textContent = appVersion ? "Version " + appVersion : "";
   const go = async () => {
     $("err").textContent = "";
