@@ -615,7 +615,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--cyan);outline-of
 .info ul{margin:4px 0 0 18px;padding:0}.info li{margin:2px 0}
 .ver{display:block;text-align:center;color:var(--mut);margin-top:4px}
 .help b{display:block;margin-top:8px}.help p{margin:2px 0 0;font-size:14.5px}
-.lhead{display:flex;gap:8px}.lhead>*{flex:1 1 0;min-width:0}.lhead select,.lhead input{background:#fff}
+.pkbar{display:flex;justify-content:space-between;align-items:center;margin:8px 2px 4px;font-size:13px;color:var(--grey)}.pkbar[hidden]{display:none}.pkbar .link{background:none;border:0;box-shadow:none;color:#0E7C8A;font-weight:700;padding:4px 2px;min-height:0;width:auto;flex:none}.lhead{display:flex;gap:8px}.lhead>*{flex:1 1 0;min-width:0}.lhead select,.lhead input{background:#fff}
 #lPages{display:flex;flex-direction:column;gap:12px}
 .lpage{background:var(--bg);border-radius:16px;padding:8px}.lpage h3{margin:2px 4px 6px;font-size:14px;color:var(--mut)}
 .lgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -867,7 +867,9 @@ details.tech[open] summary{margin-bottom:6px}
 </form></dialog>
 <dialog id="dPick"><div class="dlg">
   <h2 id="pkTitle">Gerät wählen</h2>
-  <div class="lhead"><input id="pkQ" type="search" placeholder="Suchen …"><select id="pkRoom"></select></div>
+  <input id="pkQ" type="search" placeholder="Suchen …" style="background:#fff">
+  <div class="lhead" style="margin-top:8px"><select id="pkRoom" aria-label="Raum"></select><select id="pkKind" aria-label="Geräteart"></select></div>
+  <div class="pkbar" id="pkBar"><span id="pkN"></span><button type="button" class="link" id="pkAll">Alle markieren</button></div>
   <div class="chks" id="pkList" style="max-height:50vh"></div>
   <div class="row2"><button type="button" class="ghost" id="pkCancel">Abbrechen</button><button type="button" class="pri" id="pkOk">Einfügen</button></div>
 </div></dialog>
@@ -1157,20 +1159,26 @@ function init(host) {
   $("lAddPage").onclick = () => { layOp((sl) => { for (let k = 0; k < 6; k++) sl.push(""); }); };
   /* Geräte auswählen: einzeln (ersetzt das gewählte Feld) oder mehrere (füllen freie Felder ab dem gewählten) */
   function fillPick() {
-    const q = $("pkQ").value.trim().toLowerCase(), r = $("pkRoom").value;
+    const q = $("pkQ").value.trim().toLowerCase(), r = $("pkRoom").value, k = $("pkKind").value;
     const inLay = new Set(lay ? lay.slots.filter(Boolean) : []);
-    const list = devices.filter((d) => (!r || (d.room || "") === r) && (!q || [d.name, d.type, typeName(d.type), d.room, d.loc].join(" ").toLowerCase().includes(q))).sort(byRoom);
+    const list = devices.filter((d) => (!r || (d.room || "") === r) && (!k || deviceKind(d.type) === k) && (!q || [d.name, d.type, typeName(d.type), d.room, d.loc].join(" ").toLowerCase().includes(q))).sort(byRoom);
+    $("pkAll").textContent = "Alle markieren";
+    $("pkBar").hidden = pickMode === "one" || !list.length;
+    $("pkN").textContent = list.length === 1 ? "1 Gerät" : `${list.length} Geräte`;
     $("pkList").innerHTML = list.map((d) => `<label class="chk"><input type="${pickMode === "one" ? "radio" : "checkbox"}" name="pk" value="${esc(d.id)}"><span>${esc(d.name || d.type || "(ohne Name)")}<br><small class="code">${esc([d.room, typeName(d.type) || d.type].filter(Boolean).join(" · "))}${inLay.has(d.id) ? " · schon auf diesem Bogen" : ""}</small></span></label>`).join("") || "<small>Keine Treffer</small>";
   }
   function openPick(mode) {
     pickMode = mode; $("pkTitle").textContent = mode === "one" ? "Gerät für dieses Feld" : "Geräte einfügen (in freie Felder ab dem gewählten)";
     const rooms = [...new Set(devices.map((d) => d.room).filter(Boolean))].sort((a, b) => a.localeCompare(b, "de"));
     $("pkRoom").innerHTML = '<option value="">Alle Räume</option>' + rooms.map((x) => `<option>${esc(x)}</option>`).join("");
+    const kinds = KINDS.filter((k) => devices.some((d) => deviceKind(d.type) === k));
+    $("pkKind").innerHTML = '<option value="">Alle Gerätearten</option>' + kinds.map((x) => `<option>${esc(x)}</option>`).join("");
     $("pkQ").value = ""; fillPick(); $("dPick").showModal();
   }
   $("lPick").onclick = () => openPick("one");
   $("lMulti").onclick = () => openPick("multi");
-  $("pkQ").addEventListener("input", fillPick); $("pkRoom").onchange = fillPick;
+  $("pkQ").addEventListener("input", fillPick); $("pkRoom").onchange = fillPick; $("pkKind").onchange = fillPick;
+  $("pkAll").onclick = () => { const cs = [...$("pkList").querySelectorAll("input")], on = cs.some((c) => !c.checked); cs.forEach((c) => { c.checked = on; }); $("pkAll").textContent = on ? "Keine markieren" : "Alle markieren"; };
   $("pkCancel").onclick = () => $("dPick").close();
   $("pkOk").onclick = () => {
     const ids = [...$("pkList").querySelectorAll("input:checked")].map((c) => c.value);
