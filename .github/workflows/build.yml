@@ -2,7 +2,6 @@ name: Plugin bauen
 on:
   push:
     branches: [main]
-    tags: ["v*"]
   release:
     types: [published]
   workflow_dispatch:
@@ -25,6 +24,7 @@ jobs:
           V=$(node -p "require('./package.json').version")
           grep -q "\"version\": \"$V\"" Dockerfile || { echo "Version $V fehlt im Dockerfile-Label"; exit 1; }
           echo "VERSION=$V" >> $GITHUB_ENV
+          if [ "${{ github.event_name }}" = "release" ] && [ "${{ github.event.release.tag_name }}" != "v$V" ]; then echo "Release-Tag ${{ github.event.release.tag_name }} passt nicht zur Version v$V"; exit 1; fi
       - uses: docker/setup-buildx-action@v3
       - name: Image bauen (linux/arm64)
         run: |
@@ -51,8 +51,3 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release upload "${{ github.event.release.tag_name }}" hmip-geraeteverwaltung-*.tar.gz --clobber -R "$GITHUB_REPOSITORY"
-      - name: Release anlegen (bei Tag-Push)
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" hmip-geraeteverwaltung-*.tar.gz --title "$GITHUB_REF_NAME" --notes "Plugin-Paket für die HCU (über HCUweb hochladen)."
